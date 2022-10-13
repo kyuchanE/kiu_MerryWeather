@@ -10,7 +10,7 @@ import retrofit2.http.Url
 @JvmSuppressWildcards
 interface BasicApi {
     @GET
-    fun get(
+    fun getApi(
         @Url url: String,
         @QueryMap params: Map<String, Any?> = mapOf(),
         @HeaderMap headers: Map<String, Any?> = mapOf()

@@ -30,18 +30,18 @@ fun <T : ViewDataBinding> Activity.bindView(layoutId: Int, parent: ViewGroup? = 
     return DataBindingUtil.inflate(layoutInflater, layoutId, parent, attachToRoot)
 }
 
-fun ViewDataBinding.setOnEvents(activity: BaseActivity<*>? = null) = root.setOnEvents(activity)
+fun ViewDataBinding.setOnEvents(activity: BaseActivity<*, *>? = null) = root.setOnEvents(activity)
 
 
 ////////////////////////////// View //////////////////////////////
 
 val View.isClick get() = tag == "click"
 
-val View.activity: BaseActivity<*>?
+val View.activity: BaseActivity<*, *>?
     get() {
         var ctx = context
         while (ctx is ContextWrapper) {
-            if (ctx is BaseActivity<*>) {
+            if (ctx is BaseActivity<*, *>) {
                 return ctx
             }
             ctx = ctx.baseContext
@@ -83,7 +83,7 @@ val ViewGroup.eventViews: List<View>
         return result
     }
 
-fun View.setOnEvents(baseActivity: BaseActivity<*>? = null): View {
+fun View.setOnEvents(baseActivity: BaseActivity<*, *>? = null): View {
     var views = mutableListOf<View>()
 
     if (this is ViewGroup) views.addAll(eventViews)
@@ -210,7 +210,7 @@ fun Any?.log(prefix: String = ""): Any? {
     return this
 }
 
-fun Any?.toast(handler: BaseActivity<*>) {
+fun Any?.toast(handler: BaseActivity<*, *>) {
     val str: String = when (this) {
         is Boolean, is Int, is Long, is Float, is Double -> this.toString()
         is Throwable -> this.toString()

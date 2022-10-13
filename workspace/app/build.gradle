@@ -15,6 +15,8 @@ android {
         versionCode 1
         versionName "1.0"
 
+        multiDexEnabled true
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -22,8 +24,37 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // 개발여부설정 : false
+            buildConfigField 'boolean', 'DEV', "false"
+        }
+        debug {
+            // 소스 및 리소스 축소 : 시간이 많이 걸림
+            shrinkResources false
+            minifyEnabled false
+            zipAlignEnabled false
+
+            // 개발여부설정 : true
+            buildConfigField 'boolean', 'DEV', "true"
         }
     }
+
+//    flavorDimensions 'default'
+//    productFlavors {
+//        def CONFIG = { k -> "\"${project.properties.get(k)}\"" }
+//        dev {
+//            // 디버그앱 이름 설정
+//            manifestPlaceholders = [appLabel: "_DEV"]
+//            buildConfigField "String", "WEATHER_BASE_URL", CONFIG("weather.base.url")
+//        }
+//
+//        rel {
+//            // 디버그앱 이름 설정
+//            manifestPlaceholders = [appLabel: "_REL"]
+//            buildConfigField "String", "WEATHER_BASE_URL", CONFIG("weather.base.url")
+//        }
+//    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -63,6 +94,7 @@ dependencies {
     // rx lifecycle
     implementation 'com.trello.rxlifecycle2:rxlifecycle:2.2.2'
     implementation 'com.trello.rxlifecycle2:rxlifecycle-android:2.2.2'
+    implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.2'
     // gson
     implementation 'com.google.code.gson:gson:2.8.9'
     // eventbus
@@ -89,8 +121,17 @@ dependencies {
     // hilt
     implementation 'com.google.dagger:hilt-android:2.44'
     kapt 'com.google.dagger:hilt-compiler:2.44'
+    kapt 'com.google.dagger:hilt-android-compiler:2.44'
+    // ViewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1"
+    implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
+    // LiveData
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.5.1"
+    // activity-ktx & fragment-ktx
+    implementation "androidx.activity:activity-ktx:1.4.0"
+    implementation "androidx.fragment:fragment-ktx:1.4.1"
 }
 // Allow references to generated code
 kapt {
-    correctErrorTypes false
+    correctErrorTypes true
 }

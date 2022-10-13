@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import com.google.gson.JsonObject
 import com.trello.rxlifecycle2.android.ActivityEvent
@@ -26,7 +27,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
+abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompatActivity() {
     companion object {
         /** 이벤트 주기 **/
         private const val THROTTLE_FIRST_DURATION = 500L
@@ -38,6 +39,9 @@ abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
 
     /** data binding layoutId **/
     abstract val layoutId: Int
+
+    /** viewModel **/
+    abstract val viewModel: VM
 
     /** Rx handler **/
     private val compositeDisposable = CompositeDisposable()
@@ -67,6 +71,7 @@ abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = bind(layoutId)
+        binding.lifecycleOwner = this
         binding.setOnEvents()
 
         loadingBinding = bindView(R.layout.loading)
