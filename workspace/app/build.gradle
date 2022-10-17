@@ -29,10 +29,6 @@ android {
             buildConfigField 'boolean', 'DEV', "false"
         }
         debug {
-            // 소스 및 리소스 축소 : 시간이 많이 걸림
-            shrinkResources false
-            minifyEnabled false
-            zipAlignEnabled false
 
             // 개발여부설정 : true
             buildConfigField 'boolean', 'DEV', "true"
@@ -64,13 +60,14 @@ android {
     }
     buildFeatures {
         dataBinding = true
+        viewBinding = true
     }
 }
 
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
@@ -91,10 +88,12 @@ dependencies {
 
     // rx kotlin
     implementation 'io.reactivex.rxjava2:rxkotlin:2.4.0'
+    // RxJava
+    implementation "io.reactivex.rxjava3:rxjava:3.0.4"
     // rx lifecycle
-    implementation 'com.trello.rxlifecycle2:rxlifecycle:2.2.2'
-    implementation 'com.trello.rxlifecycle2:rxlifecycle-android:2.2.2'
-    implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.2'
+    implementation 'com.trello.rxlifecycle3:rxlifecycle:3.1.0'
+    implementation 'com.trello.rxlifecycle3:rxlifecycle-android:3.1.0'
+    implementation 'com.trello.rxlifecycle3:rxlifecycle-components:3.1.0'
     // gson
     implementation 'com.google.code.gson:gson:2.8.9'
     // eventbus
@@ -126,7 +125,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1"
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03"
     // LiveData
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.5.1"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
     // activity-ktx & fragment-ktx
     implementation "androidx.activity:activity-ktx:1.4.0"
     implementation "androidx.fragment:fragment-ktx:1.4.1"
