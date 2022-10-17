@@ -11,7 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 
 abstract class BaseDialog<B: ViewDataBinding>(
-    val activity: BaseActivity<*, *>, private val cancelable: Boolean = false
+    val activity: BaseActivity<*>, private val cancelable: Boolean = false
 ): Dialog(activity) {
 
     // data binding layoutId

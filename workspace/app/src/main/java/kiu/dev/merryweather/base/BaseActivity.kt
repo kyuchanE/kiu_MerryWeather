@@ -27,7 +27,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompatActivity() {
+abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
     companion object {
         /** 이벤트 주기 **/
         private const val THROTTLE_FIRST_DURATION = 500L
@@ -39,9 +39,6 @@ abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompat
 
     /** data binding layoutId **/
     abstract val layoutId: Int
-
-    /** viewModel **/
-    abstract val viewModel: VM
 
     /** Rx handler **/
     private val compositeDisposable = CompositeDisposable()
@@ -71,7 +68,7 @@ abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompat
         super.onCreate(savedInstanceState)
 
         binding = bind(layoutId)
-        binding.lifecycleOwner = this
+//        binding.lifecycleOwner = this
         binding.setOnEvents()
 
         loadingBinding = bindView(R.layout.loading)

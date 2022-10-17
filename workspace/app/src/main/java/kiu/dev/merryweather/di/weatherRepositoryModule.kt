@@ -7,12 +7,10 @@ import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kiu.dev.merryweather.model.BasicApi
 import kiu.dev.merryweather.repository.WeatherRepository
+import org.koin.dsl.module
 
-@Module
-@InstallIn(ActivityRetainedComponent::class)
-object WeatherRepositoryModule {
-
-    @Provides
-    @ActivityRetainedScoped
-    fun provideWeatherRepository(basicApi: BasicApi) = WeatherRepository(basicApi)
+val weatherRepositoryModule = module {
+    factory {
+        WeatherRepository(get())
+    }
 }

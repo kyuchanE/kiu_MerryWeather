@@ -29,6 +29,10 @@ android {
             buildConfigField 'boolean', 'DEV', "false"
         }
         debug {
+            // 소스 및 리소스 축소 : 시간이 많이 걸림
+//            shrinkResources false
+//            minifyEnabled false
+//            zipAlignEnabled false
 
             // 개발여부설정 : true
             buildConfigField 'boolean', 'DEV', "true"
@@ -129,6 +133,9 @@ dependencies {
     // activity-ktx & fragment-ktx
     implementation "androidx.activity:activity-ktx:1.4.0"
     implementation "androidx.fragment:fragment-ktx:1.4.1"
+
+    // Koin main features for Android
+    implementation "io.insert-koin:koin-android:3.2.0"
 }
 // Allow references to generated code
 kapt {
