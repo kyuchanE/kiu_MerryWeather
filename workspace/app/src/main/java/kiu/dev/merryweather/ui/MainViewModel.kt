@@ -17,10 +17,10 @@ class MainViewModel (
 ) : BaseViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
-    private val isLoading : LiveData<Boolean> get() = _isLoading
+    val isLoading : LiveData<Boolean> get() = _isLoading
 
     private val _weatherJson = MutableLiveData<JsonObject>()
-    private val weatherJson : LiveData<JsonObject> get() = _weatherJson
+    val weatherJson : LiveData<JsonObject> get() = _weatherJson
 
     fun getWeather(
         params: Map<String, Any?> = mapOf()
@@ -32,11 +32,11 @@ class MainViewModel (
             ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError { e ->
-                    L.d("@@@@@@ e : $e")
+                    L.d("e : $e")
                 }
                 .doOnNext { json ->
                     _weatherJson.postValue(json)
-                    L.d("@@@@@@ json : $json")
+                    L.d("json : $json")
                 }
                 .doFinally{
                     _isLoading.postValue(false)
