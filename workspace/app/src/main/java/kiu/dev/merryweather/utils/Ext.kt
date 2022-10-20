@@ -219,3 +219,17 @@ fun Any?.toast(handler: BaseActivity<*>) {
     }
     Toast.makeText(handler, str, Toast.LENGTH_SHORT).show()
 }
+
+
+////////////////////////////// String //////////////////////////////
+
+fun String.getTimeNow(): String {
+    return try {
+        val date = Date(System.currentTimeMillis())
+        val simpleDateFormat = SimpleDateFormat(this)
+        simpleDateFormat.format(date)
+    } catch (e: Exception) {
+        L.e(e.message)
+        ""
+    }
+}
