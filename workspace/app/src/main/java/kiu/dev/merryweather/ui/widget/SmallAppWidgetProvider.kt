@@ -8,9 +8,40 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import kiu.dev.merryweather.R
+import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.ui.MainActivity
+import kiu.dev.merryweather.utils.L
 
 class SmallAppWidgetProvider : AppWidgetProvider() {
+
+    companion object {
+        fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, t: String) {
+            L.d("onUpdate updateAppWidget : $appWidgetId")
+            val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
+                .let { intent ->
+                    // TODO chan PendingIntent flags Issue
+                    // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE
+                    // or FLAG_MUTABLE be specified when creating a PendingIntent.
+                    PendingIntent.getActivity(context, 0, intent, FLAG_IMMUTABLE)
+                }
+
+            val views: RemoteViews = RemoteViews(
+                context.packageName,
+                R.layout.widget_small
+            ).apply {
+                setOnClickPendingIntent(R.id.tv_widget_text, pendingIntent)
+                setTextViewText(R.id.tv_widget_text, t)
+            }
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+    }
+
+    override fun onEnabled(context: Context?) {
+        super.onEnabled(context)
+
+        L.d("onEnaled ")
+    }
 
     override fun onUpdate(
         context: Context?,
@@ -19,9 +50,11 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
     ) {
 //        super.onUpdate(context, appWidgetManager, appWidgetIds)
 
+
         // Perform this loop procedure for each App Widget that belongs to this provider
         appWidgetIds?.forEach { appWidgetId ->
-
+            L.d("onUpdate appWidgetId : $appWidgetId")
+            C.tempWidgetId = appWidgetId
             context?.let {
                 // Create an Intent to launch Activity
                 val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
@@ -46,5 +79,10 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
             }
 
         }
+    }
+
+    override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
+        super.onDeleted(context, appWidgetIds)
+        L.d("onDeleted ")
     }
 }

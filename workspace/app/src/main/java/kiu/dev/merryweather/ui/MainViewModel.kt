@@ -27,8 +27,8 @@ class MainViewModel (
     private val _showError = MutableLiveData<String>()
     val showError : LiveData<String> get() = _showError
 
-    private val _weatherNowJson = MutableLiveData<JsonObject>()
-    val weatherNowJson : LiveData<JsonObject> get() = _weatherNowJson
+    private val _weatherNowJson = MutableLiveData<List<JsonElement>>()
+    val weatherNowJson : LiveData<List<JsonElement>> get() = _weatherNowJson
 
     private val _weatherUltraNowJson = MutableLiveData<List<JsonElement>>()
     val weatherUltraNowJson : LiveData<List<JsonElement>> get() = _weatherUltraNowJson
@@ -67,8 +67,22 @@ class MainViewModel (
                 }
                 .doOnNext { json ->
                     L.d("json : $json")
-                    if (isWeatherSuccess(json)){
-                        _weatherNowJson.postValue(json)
+                    if (isWeatherSuccess(json)) {
+                        val itemsJsonArray: List<JsonElement> =
+                            json.asJsonObject("response")
+                                .asJsonObject("body")
+                                .asJsonObject("items")
+                                .asJsonArray("item")
+                                .filter {
+                                    it.asJsonObject.asString("category") == "POP" ||
+                                            it.asJsonObject.asString("category") == "PCP" ||
+                                            it.asJsonObject.asString("category") == "TMP" ||
+                                            it.asJsonObject.asString("category") == "SKY" ||
+                                            it.asJsonObject.asString("category") == "TMN" ||
+                                            it.asJsonObject.asString("category") == "TMX" ||
+                                            it.asJsonObject.asString("category") == "PTY"
+                                }
+                        _weatherNowJson.postValue(itemsJsonArray)
                     }
                 }
                 .doFinally{

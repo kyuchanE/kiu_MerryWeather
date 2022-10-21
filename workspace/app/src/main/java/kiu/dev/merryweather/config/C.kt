@@ -8,5 +8,18 @@ object C {
         const val WEATHER_ULTRA_NOW: String = "VilageFcstInfoService_2.0/getUltraSrtFcst"
         const val WEATHER_WEEK: String = "MidFcstInfoService/getMidTa"
     }
+
+    val WEATHER_NOW_GET_DATA_TIME = listOf(
+        "0210",
+        "0510",
+        "0810",
+        "1110",
+        "1410",
+        "1710",
+        "2010",
+        "2310"
+    )
+
+    var tempWidgetId = 0
 }
 
