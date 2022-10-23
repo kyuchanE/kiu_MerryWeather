@@ -1,4 +1,4 @@
-package kiu.dev.merryweather.ui
+package kiu.dev.merryweather.ui.activity
 
 import android.appwidget.AppWidgetManager
 import android.os.Bundle

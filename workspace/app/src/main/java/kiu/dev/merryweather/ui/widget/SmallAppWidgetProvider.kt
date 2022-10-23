@@ -9,7 +9,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.config.C
-import kiu.dev.merryweather.ui.MainActivity
+import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.utils.L
 
 class SmallAppWidgetProvider : AppWidgetProvider() {

@@ -1,21 +1,17 @@
-package kiu.dev.merryweather.ui
+package kiu.dev.merryweather.ui.activity
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.base.BaseViewModel
-import kiu.dev.merryweather.listener.RequestSubscriber
 import kiu.dev.merryweather.repository.WeatherRepository
 import kiu.dev.merryweather.utils.L
 import kiu.dev.merryweather.utils.asJsonArray
 import kiu.dev.merryweather.utils.asJsonObject
 import kiu.dev.merryweather.utils.asString
-import javax.inject.Inject
 
 class MainViewModel (
     private val weatherRepository: WeatherRepository

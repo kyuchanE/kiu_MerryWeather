@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import kiu.dev.merryweather.base.BaseActivity
@@ -27,6 +28,10 @@ fun <T : ViewDataBinding> Activity.bind(layoutId: Int): T {
     return DataBindingUtil.setContentView(this, layoutId)
 }
 fun <T : ViewDataBinding> Activity.bindView(layoutId: Int, parent: ViewGroup? = null, attachToRoot: Boolean = false): T {
+    return DataBindingUtil.inflate(layoutInflater, layoutId, parent, attachToRoot)
+}
+
+fun <T : ViewDataBinding> Fragment.bindView(layoutId: Int, parent: ViewGroup? = null, attachToRoot: Boolean = false): T {
     return DataBindingUtil.inflate(layoutInflater, layoutId, parent, attachToRoot)
 }
 
