@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import com.blankj.utilcode.util.ThreadUtils
 import com.google.gson.JsonObject
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
@@ -14,7 +13,6 @@ import kiu.dev.merryweather.R
 import kiu.dev.merryweather.databinding.LoadingBinding
 import kiu.dev.merryweather.listener.RequestSubscriber
 import kiu.dev.merryweather.utils.*
-import org.greenrobot.eventbus.EventBus
 import retrofit2.HttpException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -48,9 +46,6 @@ abstract class BaseFragment<B : ViewDataBinding> : Fragment()  {
         binding = inflater.bind(layoutId, container)
         binding.setOnEvents()
         binding.lifecycleOwner = this
-
-        // 이벤트 버스 등록
-        EventBus.getDefault().register(this)
 
         loadingBinding = bindView(R.layout.loading)
         (binding.root as ViewGroup).addView(
@@ -112,27 +107,27 @@ abstract class BaseFragment<B : ViewDataBinding> : Fragment()  {
 
     }
 
-    /**
-     * 로딩표시
-     */
-    fun showFragmentLoading() {
-        if (loadingCount.incrementAndGet() == 1) {
-            ThreadUtils.runOnUiThread {
-                loadingBinding.root.show()
-            }
-        }
-    }
-
-    /**
-     * 로딩숨김
-     */
-    fun hideFragmentLoading() {
-        if (loadingCount.decrementAndGet() == 0) {
-            ThreadUtils.runOnUiThread {
-                loadingBinding.root.gone()
-            }
-        }
-    }
+//    /**
+//     * 로딩표시
+//     */
+//    fun showFragmentLoading() {
+//        if (loadingCount.incrementAndGet() == 1) {
+//            ThreadUtils.runOnUiThread {
+//                loadingBinding.root.show()
+//            }
+//        }
+//    }
+//
+//    /**
+//     * 로딩숨김
+//     */
+//    fun hideFragmentLoading() {
+//        if (loadingCount.decrementAndGet() == 0) {
+//            ThreadUtils.runOnUiThread {
+//                loadingBinding.root.gone()
+//            }
+//        }
+//    }
 
     /**
      * 서버 에러코드 처리
@@ -148,35 +143,35 @@ abstract class BaseFragment<B : ViewDataBinding> : Fragment()  {
         }
     }
 
-    /**
-     * 공통 속성을 정의한 Subscriber
-     *
-     * @param useLoading 로딩 사용여부
-     * @return
-     */
-    fun <T> buildSubscriber(useLoading: Boolean = true) = object : RequestSubscriber<T>() {
-        override fun onStart() {
-            super.onStart()
-            if (useLoading) showFragmentLoading()
-        }
-
-        override fun onError(t: Throwable) {
-            if (!skipErrorHandle) handleError(t)
-            if (useLoading) hideFragmentLoading()
-        }
-
-        override fun onNext(t: T) {
-            if (!skipErrorHandle) {
-                if (t is JsonObject) {
-                    handleServerCode(t)
-                }
-            }
-        }
-
-        override fun onComplete() {
-            if (useLoading) hideFragmentLoading()
-        }
-    }
+//    /**
+//     * 공통 속성을 정의한 Subscriber
+//     *
+//     * @param useLoading 로딩 사용여부
+//     * @return
+//     */
+//    fun <T> buildSubscriber(useLoading: Boolean = true) = object : RequestSubscriber<T>() {
+//        override fun onStart() {
+//            super.onStart()
+//            if (useLoading) showFragmentLoading()
+//        }
+//
+//        override fun onError(t: Throwable) {
+//            if (!skipErrorHandle) handleError(t)
+//            if (useLoading) hideFragmentLoading()
+//        }
+//
+//        override fun onNext(t: T) {
+//            if (!skipErrorHandle) {
+//                if (t is JsonObject) {
+//                    handleServerCode(t)
+//                }
+//            }
+//        }
+//
+//        override fun onComplete() {
+//            if (useLoading) hideFragmentLoading()
+//        }
+//    }
 
     /**
      * 예상되는 예외처리

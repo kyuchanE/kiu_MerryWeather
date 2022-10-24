@@ -79,7 +79,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // blankj util
-    implementation 'com.github.Blankj:AndroidUtilCode:1.30.0'
+//    implementation 'com.github.Blankj:AndroidUtilCode:1.30.0'
 
     // rx binding
     implementation 'com.jakewharton.rxbinding3:rxbinding:3.1.0'
