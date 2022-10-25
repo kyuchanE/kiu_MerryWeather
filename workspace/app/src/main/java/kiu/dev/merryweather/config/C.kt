@@ -20,6 +20,5 @@ object C {
         "2310"
     )
 
-    var tempWidgetId = 0
 }
 

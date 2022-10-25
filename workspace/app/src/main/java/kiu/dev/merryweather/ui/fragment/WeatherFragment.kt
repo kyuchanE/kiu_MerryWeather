@@ -12,6 +12,7 @@ import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
 import kiu.dev.merryweather.base.BaseFragment
 import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.local.WidgetId
 import kiu.dev.merryweather.databinding.FragmentWeatherBinding
 import kiu.dev.merryweather.ui.activity.MainViewModel
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
@@ -24,6 +25,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     override val layoutId: Int = R.layout.fragment_weather
 
     private val viewModel by activityViewModels<MainViewModel>()
+    private val widgetIdList = mutableListOf<WidgetId>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -53,6 +55,12 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 )
             )
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        viewModel.getWidgetId()
     }
 
     /**
@@ -186,16 +194,19 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 }
 
 
-
                 val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
                 L.d("@@@@@@@@@ t : $t")
-                SmallAppWidgetProvider.updateAppWidget(
-                    (activity as BaseActivity<*>).context,
-                    AppWidgetManager.getInstance((activity as BaseActivity<*>).context),
-                    42,
-                    t
-                )
 
+                this@WeatherFragment.widgetIdList.forEach {
+                    it.id?.let {
+                        SmallAppWidgetProvider.updateAppWidget(
+                            (activity as BaseActivity<*>).context,
+                            AppWidgetManager.getInstance((activity as BaseActivity<*>).context),
+                            it,
+                            t
+                        )
+                    }
+                }
 
                 binding.tvValue.text = tpm
 
@@ -203,6 +214,14 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
             weatherWeekJson.observe((activity as BaseActivity<*>)) {
                 L.d("weatherWeekJson observe : $it")
+            }
+
+            widgetIdList.observe((activity as BaseActivity<*>)) {
+                L.d("widgetIdList observe : $it")
+                this@WeatherFragment.widgetIdList.clear()
+                it.forEach { widgetId ->
+                    this@WeatherFragment.widgetIdList.add(widgetId)
+                }
             }
         }
 

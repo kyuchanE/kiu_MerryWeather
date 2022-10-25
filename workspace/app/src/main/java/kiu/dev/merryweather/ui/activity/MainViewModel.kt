@@ -7,14 +7,17 @@ import com.google.gson.JsonObject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.base.BaseViewModel
-import kiu.dev.merryweather.repository.WeatherRepository
+import kiu.dev.merryweather.data.local.WidgetId
+import kiu.dev.merryweather.data.repository.WeatherRepository
+import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.utils.L
 import kiu.dev.merryweather.utils.asJsonArray
 import kiu.dev.merryweather.utils.asJsonObject
 import kiu.dev.merryweather.utils.asString
 
 class MainViewModel (
-    private val weatherRepository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val widgetIdRepository: WidgetIdRepository
 ) : BaseViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
@@ -31,6 +34,9 @@ class MainViewModel (
 
     private val _weatherWeekJson = MutableLiveData<JsonObject>()
     val weatherWeekJson : LiveData<JsonObject> get() = _weatherWeekJson
+
+    private val _widgetIdList = MutableLiveData<List<WidgetId>>()
+    val widgetIdList : LiveData<List<WidgetId>> get() = _widgetIdList
 
     /**
      * 기상청 단기 예보 정보 (1일 8회)
@@ -140,6 +146,34 @@ class MainViewModel (
                 .subscribe()
         )
 
+    }
+
+    fun getWidgetId() {
+        addDisposable(
+            widgetIdRepository.getWidgetId()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { list ->
+                    L.d("list : $list")
+                    _widgetIdList.postValue(list)
+                }
+                .subscribe()
+        )
+    }
+
+    fun saveWidgetId(vararg id: WidgetId) {
+        addDisposable(
+            widgetIdRepository.saveWidgetId(*id)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+
+                }
+                .subscribe()
+        )
     }
 
     /**

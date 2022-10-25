@@ -7,8 +7,13 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import androidx.room.Room
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.local.WidgetId
+import kiu.dev.merryweather.data.local.WidgetIdDataBase
 import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.utils.L
 
@@ -54,8 +59,23 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
         // Perform this loop procedure for each App Widget that belongs to this provider
         appWidgetIds?.forEach { appWidgetId ->
             L.d("onUpdate appWidgetId : $appWidgetId")
-            C.tempWidgetId = appWidgetId
             context?.let {
+                // Save Widget ID
+                Room.databaseBuilder(
+                    context,
+                    WidgetIdDataBase::class.java,
+                    "widget_id"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .widgetIdDAO()
+                    .insertWidgetId(
+                        WidgetId(id = appWidgetId, name = "WidgetName_$appWidgetId")
+                    )
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.computation())
+                    .subscribe()
+
                 // Create an Intent to launch Activity
                 val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                     .let { intent ->
@@ -84,5 +104,6 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
         L.d("onDeleted ")
+        // TODO chan 단일 위젯 아이디 삭제
     }
 }

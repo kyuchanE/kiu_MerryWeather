@@ -1,13 +1,10 @@
-package kiu.dev.merryweather.repository
+package kiu.dev.merryweather.data.repository
 
 import com.google.gson.JsonObject
 import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.config.C
-import kiu.dev.merryweather.model.BasicApi
+import kiu.dev.merryweather.data.BasicApi
 import org.koin.core.component.KoinComponent
-import javax.inject.Inject
 
 class WeatherRepository (
     private val baseApi: BasicApi

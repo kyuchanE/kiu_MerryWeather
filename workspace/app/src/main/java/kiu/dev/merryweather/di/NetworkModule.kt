@@ -6,7 +6,7 @@ import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.ihsanbal.logging.Level
 import com.ihsanbal.logging.LoggingInterceptor
 import kiu.dev.merryweather.config.C
-import kiu.dev.merryweather.model.BasicApi
+import kiu.dev.merryweather.data.BasicApi
 import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import okhttp3.internal.platform.Platform
