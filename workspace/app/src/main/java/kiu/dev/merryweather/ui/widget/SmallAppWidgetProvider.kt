@@ -16,6 +16,7 @@ import kiu.dev.merryweather.data.local.WidgetId
 import kiu.dev.merryweather.data.local.WidgetIdDataBase
 import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.utils.L
+import kiu.dev.merryweather.utils.getTimeNow
 
 class SmallAppWidgetProvider : AppWidgetProvider() {
 
@@ -55,7 +56,6 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
     ) {
 //        super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-
         // Perform this loop procedure for each App Widget that belongs to this provider
         appWidgetIds?.forEach { appWidgetId ->
             L.d("onUpdate appWidgetId : $appWidgetId")
@@ -70,11 +70,14 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
                     .build()
                     .widgetIdDAO()
                     .insertWidgetId(
-                        WidgetId(id = appWidgetId, name = "WidgetName_$appWidgetId")
+                        WidgetId(id = appWidgetId)
                     )
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.computation())
                     .subscribe()
+
+                // Test setTime
+                val str = "YYYYMMdd HH:mm".getTimeNow()
 
                 // Create an Intent to launch Activity
                 val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
@@ -92,6 +95,7 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
                     R.layout.widget_small
                 ).apply {
                     setOnClickPendingIntent(R.id.tv_widget_text, pendingIntent)
+                    setTextViewText(R.id.tv_widget_text, str)
                 }
 
                 // Tell the AppWidgetManager to perform an update on the current app widget
@@ -104,6 +108,54 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
         L.d("onDeleted ")
-        // TODO chan 단일 위젯 아이디 삭제
+
+        context?.let {
+            L.d("@@@@@@@@@@@@@@@@@@")
+            var idList: List<WidgetId>? = null
+            val roomDb = Room.databaseBuilder(
+                it,
+                WidgetIdDataBase::class.java,
+                "widget_id"
+            )
+                .fallbackToDestructiveMigration()
+                .build()
+
+
+            /// get Widget ID
+            roomDb.widgetIdDAO()
+                .getWidgetId()
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.computation())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { list ->
+                    L.d("idList : $idList")
+                    list?.let {
+                        deleteWidgetId(roomDb, appWidgetIds, it)
+                    }
+
+                }
+                .subscribe()
+
+        }
+
+    }
+
+    fun deleteWidgetId(dataBase: WidgetIdDataBase, ids: IntArray?, list: List<WidgetId>) {
+        if (list.isNotEmpty()) {
+            ids?.forEach { id ->
+                L.d("onDeleted appWidgetIds id : $id")
+                dataBase.widgetIdDAO()
+                    .deleteWidgetId(WidgetId(id))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.computation())
+                    .doOnError { e ->
+                        L.d("e : $e")
+                    }
+                    .subscribe()
+            }
+        }
+
     }
 }

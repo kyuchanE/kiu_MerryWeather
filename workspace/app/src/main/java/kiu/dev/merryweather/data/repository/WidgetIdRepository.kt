@@ -23,4 +23,10 @@ class WidgetIdRepository(
      */
     fun saveWidgetId(vararg id: WidgetId) : Completable =
         widgetIdDao.insertWidgetId(*id)
+
+    /**
+     * 위젯 ID 삭제
+     */
+    fun deleteWidgetId(id: WidgetId) : Completable =
+        widgetIdDao.deleteWidgetId(id)
 }

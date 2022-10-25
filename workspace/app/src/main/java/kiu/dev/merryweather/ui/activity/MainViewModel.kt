@@ -148,6 +148,9 @@ class MainViewModel (
 
     }
 
+    /**
+     * 위젯 아이디 조회
+     */
     fun getWidgetId() {
         addDisposable(
             widgetIdRepository.getWidgetId()
@@ -164,6 +167,9 @@ class MainViewModel (
         )
     }
 
+    /**
+     * 위젯 아이디 저장
+     */
     fun saveWidgetId(vararg id: WidgetId) {
         addDisposable(
             widgetIdRepository.saveWidgetId(*id)

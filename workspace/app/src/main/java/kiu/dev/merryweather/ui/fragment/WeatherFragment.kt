@@ -222,6 +222,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 it.forEach { widgetId ->
                     this@WeatherFragment.widgetIdList.add(widgetId)
                 }
+                L.d("fragment widgetIdList : ${this@WeatherFragment.widgetIdList}")
             }
         }
 

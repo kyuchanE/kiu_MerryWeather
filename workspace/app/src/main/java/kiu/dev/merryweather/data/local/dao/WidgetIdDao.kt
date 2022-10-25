@@ -17,8 +17,10 @@ interface WidgetIdDao {
     @Update
     fun updateWidgetId(id: WidgetId): Completable
 
+    @Delete
+    fun deleteWidgetId(id: WidgetId): Completable
+
     @Query("DELETE FROM widget_id")
     fun deleteAll(): Completable
 
-    // TODO chan 단일 위젯 아이디 삭제
 }
