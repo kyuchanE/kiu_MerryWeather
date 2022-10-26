@@ -35,8 +35,7 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
                 context.packageName,
                 R.layout.widget_small
             ).apply {
-                setOnClickPendingIntent(R.id.tv_widget_text, pendingIntent)
-                setTextViewText(R.id.tv_widget_text, t)
+                setTextViewText(R.id.tv_now, t)
             }
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -88,13 +87,20 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
                         PendingIntent.getActivity(context, 0, intent, FLAG_IMMUTABLE)
                     }
 
+                val refreshIntent: PendingIntent = Intent(context, SmallAppWidgetProvider::class.java)
+                    .setAction("REFRESH_BTN_CLICK")
+                    .let { intent ->
+                        PendingIntent.getBroadcast(context, 0, intent, FLAG_IMMUTABLE)
+                    }
+
                 // Get the layout for the App Widget and attach an on-click listener
                 // to the button
                 val views: RemoteViews = RemoteViews(
                     it.packageName,
                     R.layout.widget_small
                 ).apply {
-                    setOnClickPendingIntent(R.id.tv_widget_text, pendingIntent)
+                    setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
+                    setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
                     setTextViewText(R.id.tv_widget_text, str)
                 }
 
@@ -102,6 +108,17 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
                 appWidgetManager?.updateAppWidget(appWidgetId, views)
             }
 
+        }
+    }
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        super.onReceive(context, intent)
+        intent?.let { i ->
+            val action = i.action
+
+            if (action == "REFRESH_BTN_CLICK"){
+                L.d("onReceive REFRESH_BTN_CLICK")
+            }
         }
     }
 
@@ -142,7 +159,7 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
 
     }
 
-    fun deleteWidgetId(dataBase: WidgetIdDataBase, ids: IntArray?, list: List<WidgetId>) {
+    private fun deleteWidgetId(dataBase: WidgetIdDataBase, ids: IntArray?, list: List<WidgetId>) {
         if (list.isNotEmpty()) {
             ids?.forEach { id ->
                 L.d("onDeleted appWidgetIds id : $id")
