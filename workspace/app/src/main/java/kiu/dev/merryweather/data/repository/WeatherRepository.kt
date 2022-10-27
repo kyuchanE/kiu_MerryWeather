@@ -1,13 +1,17 @@
 package kiu.dev.merryweather.data.repository
 
 import com.google.gson.JsonObject
+import io.reactivex.Completable
 import io.reactivex.Flowable
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.BasicApi
+import kiu.dev.merryweather.data.local.Weather
+import kiu.dev.merryweather.data.local.dao.WeatherDao
 import org.koin.core.component.KoinComponent
 
 class WeatherRepository (
-    private val baseApi: BasicApi
+    private val baseApi: BasicApi,
+    private val weatherDao: WeatherDao
 ): KoinComponent {
 
     /**
@@ -73,5 +77,23 @@ class WeatherRepository (
             header
         )
     }
+
+    /**
+     * 로컬에 저장된 날씨 데이터 조회
+     */
+    fun getLocalWeatherData(): Flowable<List<Weather>> =
+        weatherDao.getWeatherData()
+
+    /**
+     * 로컬에 날씨 데이터 저장
+     */
+    fun saveLocalWeatherData(vararg weather: Weather): Completable =
+        weatherDao.insertWeatherData(*weather)
+
+    /**
+     * 로컬 날씨 데이터 삭제
+     */
+    fun deleteLocalWeatherData(data: Weather): Completable =
+        weatherDao.deleteWeatherData(data)
 
 }

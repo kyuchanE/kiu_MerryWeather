@@ -6,7 +6,7 @@ import org.koin.dsl.module
 
 val repositoryModule = module {
     factory {
-        WeatherRepository(get())
+        WeatherRepository(get(), get())
     }
 
     factory {

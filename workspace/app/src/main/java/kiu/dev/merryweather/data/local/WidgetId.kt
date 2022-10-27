@@ -2,9 +2,10 @@ package kiu.dev.merryweather.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kiu.dev.merryweather.config.C
 import java.io.Serializable
 
-@Entity(tableName = "widget_id")
+@Entity(tableName = C.RoomTableName.WIDGET_ID)
 data class WidgetId(
     @PrimaryKey(autoGenerate = true)
     var id: Int? = null

@@ -17,8 +17,10 @@ import kiu.dev.merryweather.data.local.WidgetIdDataBase
 import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.utils.L
 import kiu.dev.merryweather.utils.getTimeNow
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 
-class SmallAppWidgetProvider : AppWidgetProvider() {
+class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
 
     companion object {
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, t: String) {
@@ -60,13 +62,8 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
             L.d("onUpdate appWidgetId : $appWidgetId")
             context?.let {
                 // Save Widget ID
-                Room.databaseBuilder(
-                    context,
-                    WidgetIdDataBase::class.java,
-                    "widget_id"
-                )
-                    .fallbackToDestructiveMigration()
-                    .build()
+
+                get<WidgetIdDataBase>()
                     .widgetIdDAO()
                     .insertWidgetId(
                         WidgetId(id = appWidgetId)
@@ -129,17 +126,10 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
         context?.let {
             L.d("@@@@@@@@@@@@@@@@@@")
             var idList: List<WidgetId>? = null
-            val roomDb = Room.databaseBuilder(
-                it,
-                WidgetIdDataBase::class.java,
-                "widget_id"
-            )
-                .fallbackToDestructiveMigration()
-                .build()
-
 
             /// get Widget ID
-            roomDb.widgetIdDAO()
+            get<WidgetIdDataBase>()
+                .widgetIdDAO()
                 .getWidgetId()
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.computation())
@@ -149,7 +139,7 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
                 .doOnNext { list ->
                     L.d("idList : $idList")
                     list?.let {
-                        deleteWidgetId(roomDb, appWidgetIds, it)
+                        deleteWidgetId(appWidgetIds, it)
                     }
 
                 }
@@ -159,11 +149,13 @@ class SmallAppWidgetProvider : AppWidgetProvider() {
 
     }
 
-    private fun deleteWidgetId(dataBase: WidgetIdDataBase, ids: IntArray?, list: List<WidgetId>) {
+    private fun deleteWidgetId(ids: IntArray?, list: List<WidgetId>) {
         if (list.isNotEmpty()) {
             ids?.forEach { id ->
                 L.d("onDeleted appWidgetIds id : $id")
-                dataBase.widgetIdDAO()
+
+                get<WidgetIdDataBase>()
+                    .widgetIdDAO()
                     .deleteWidgetId(WidgetId(id))
                     .subscribeOn(Schedulers.io())
                     .observeOn(Schedulers.computation())

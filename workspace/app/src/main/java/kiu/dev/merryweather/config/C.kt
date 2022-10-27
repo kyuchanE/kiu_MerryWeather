@@ -9,16 +9,41 @@ object C {
         const val WEATHER_WEEK: String = "MidFcstInfoService/getMidTa"
     }
 
-    val WEATHER_NOW_GET_DATA_TIME = listOf(
-        "0210",
-        "0510",
-        "0810",
-        "1110",
-        "1410",
-        "1710",
-        "2010",
-        "2310"
-    )
+    object WeatherData {
+        // TODO chan 단기예보 시간
+        val WEATHER_NOW_GET_DATA_TIME = listOf(
+            "0210",
+            "0510",
+            "0810",
+            "1110",
+            "1410",
+            "1710",
+            "2010",
+            "2310"
+        )
+
+        object Location {
+            const val LOCATION_SEOUL = "seoul"
+
+            val Seoul = mapOf(
+                "nx" to "60",
+                "ny" to "127"
+            )
+
+            fun getLocationMapData(location: String): Map<String, String> {
+                return when(location) {
+                    LOCATION_SEOUL -> Seoul
+                    else -> Seoul
+                }
+            }
+        }
+    }
+
+
+    object RoomTableName {
+        const val WIDGET_ID = "widget_id"           // 위젯 아이디 테이블
+        const val WEATHER_ITEM = "weather_item"     // 날씨 데이터 테이블
+    }
 
 }
 

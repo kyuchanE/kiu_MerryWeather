@@ -7,6 +7,7 @@ import com.google.gson.JsonObject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.base.BaseViewModel
+import kiu.dev.merryweather.data.local.Weather
 import kiu.dev.merryweather.data.local.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
@@ -37,6 +38,9 @@ class MainViewModel (
 
     private val _widgetIdList = MutableLiveData<List<WidgetId>>()
     val widgetIdList : LiveData<List<WidgetId>> get() = _widgetIdList
+
+    private val _localWeatherDataList = MutableLiveData<List<Weather>>()
+    val localWeatherDataList: LiveData<List<Weather>> get() = _localWeatherDataList
 
     /**
      * 기상청 단기 예보 정보 (1일 8회)
@@ -130,10 +134,10 @@ class MainViewModel (
                                 .asJsonObject("items")
                                 .asJsonArray("item")
                                 .filter {
-                                    it.asJsonObject.asString("category") == "T1H" ||
-                                            it.asJsonObject.asString("category") == "RN1" ||
-                                            it.asJsonObject.asString("category") == "SKY" ||
-                                            it.asJsonObject.asString("category") == "PTY"
+                                    it.asJsonObject.asString("category") == "T1H" ||    // 기온
+                                            it.asJsonObject.asString("category") == "RN1" ||    // 1시간 강수량
+                                            it.asJsonObject.asString("category") == "SKY" ||    // 하늘 상태
+                                            it.asJsonObject.asString("category") == "PTY"   // 강수형태
                             }
 
                         L.d("itemsJsonArray $itemsJsonArray")
@@ -245,6 +249,37 @@ class MainViewModel (
             )
             return false
         }
+    }
+
+    /**
+     * 로컬에 저장된 날씨 데이터 조회
+     */
+    fun getLocalWeatherData() {
+        addDisposable(
+            weatherRepository.getLocalWeatherData()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { list ->
+                    L.d("local weather list : $list")
+                    _localWeatherDataList.postValue(list)
+                }
+                .subscribe()
+        )
+    }
+
+    fun saveLocalWeatherData(dataList: MutableList<Weather>) {
+        addDisposable(
+            weatherRepository.saveLocalWeatherData(*dataList.toTypedArray())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .subscribe()
+        )
     }
 
 }
