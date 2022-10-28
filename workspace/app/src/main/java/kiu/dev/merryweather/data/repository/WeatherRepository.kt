@@ -96,4 +96,11 @@ class WeatherRepository (
     fun deleteLocalWeatherData(data: Weather): Completable =
         weatherDao.deleteWeatherData(data)
 
+
+    /**
+     * 로컬 날씨 데이터 삭제
+     */
+    fun deleteLocalWeatherData(vararg weather: Weather): Completable =
+        weatherDao.deleteWeatherData(*weather)
+
 }

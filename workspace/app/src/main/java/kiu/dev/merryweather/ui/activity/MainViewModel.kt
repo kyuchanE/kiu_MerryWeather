@@ -11,10 +11,7 @@ import kiu.dev.merryweather.data.local.Weather
 import kiu.dev.merryweather.data.local.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
-import kiu.dev.merryweather.utils.L
-import kiu.dev.merryweather.utils.asJsonArray
-import kiu.dev.merryweather.utils.asJsonObject
-import kiu.dev.merryweather.utils.asString
+import kiu.dev.merryweather.utils.*
 
 class MainViewModel (
     private val weatherRepository: WeatherRepository,
@@ -270,7 +267,64 @@ class MainViewModel (
         )
     }
 
-    fun saveLocalWeatherData(dataList: MutableList<Weather>) {
+    /**
+     * ROOM 로컬 날씨 데이터 저장
+     */
+    fun saveLocalWeatherData(data: List<JsonElement>) {
+        // TODO chan 중복된 시간 데이터는 갱신 / 새로운 데이터는 추가,
+        //  초단기, 단기 중기 데이터 꺼내오는 로직 분기처리 필요
+
+        // TODO chan 임시로 초단기 데이터 테스트
+        val dataList: MutableList<Weather> = mutableListOf()
+
+        // 시간 값 세팅
+        val timeList: MutableList<Map<String, String>> = mutableListOf()
+        data.forEach {
+            val timeItem = mapOf(
+                "fcstDate" to
+                        it.asJsonObject.asString("fcstDate"),
+                "fcstTime" to
+                        it.asJsonObject.asString("fcstTime")
+            )
+
+            if (!timeList.contains(timeItem)) {
+                timeList.add(timeItem)
+            }
+        }
+
+        timeList.forEach { timeData ->
+            var tmp = ""
+            var sky = ""
+            var pty = ""
+            var pcp = ""
+
+            data.forEach { data ->
+                if (data.asJsonObject.asString("fcstDate") == timeData["fcstDate"] &&
+                    data.asJsonObject.asString("fcstTime") == timeData["fcstTime"]) {
+
+                    if (data.asJsonObject.asString("category") == "PTY") {
+                        pty = data.asJsonObject.asString("fcstValue")
+                    } else if (data.asJsonObject.asString("category") == "T1H") {
+                        tmp = data.asJsonObject.asString("fcstValue")
+                    } else if (data.asJsonObject.asString("category") == "SKY") {
+                        sky = data.asJsonObject.asString("fcstValue")
+                    } else if (data.asJsonObject.asString("category") == "RN1") {
+                        pcp = data.asJsonObject.asString("fcstValue")
+                    }
+                }
+            }
+
+            dataList.add(
+                Weather(
+                    time = (timeData["fcstDate"] + timeData["fcstTime"]).toLong(),
+                    tmp = tmp,
+                    sky = sky,
+                    pty = pty,
+                    pcp = pcp
+                )
+            )
+        }
+
         addDisposable(
             weatherRepository.saveLocalWeatherData(*dataList.toTypedArray())
                 .subscribeOn(Schedulers.io())
@@ -280,6 +334,38 @@ class MainViewModel (
                 }
                 .subscribe()
         )
+    }
+
+    /**
+     * ROOM 로컬 지난 날씨 데이터 삭제
+     */
+    fun deleteBeforeLocalWeatherData(weatherDataList: MutableList<Weather>) {
+        val today = "YYYYMMdd".getTimeNow().toLong()
+        val deleteDataList: MutableList<Weather> = mutableListOf()
+
+        weatherDataList.forEach {
+            if (it.time/10000 < today) {
+                deleteDataList.add(it)
+            }
+        }
+
+        L.d("deleteLocalWeatherDataList : $deleteDataList")
+
+        if(deleteDataList.size > 0) {
+            addDisposable(
+                weatherRepository.deleteLocalWeatherData(*deleteDataList.toTypedArray())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnError { e ->
+                        L.d("e : $e")
+                    }
+                    .doFinally {
+                        getLocalWeatherData()
+                    }
+                    .subscribe()
+            )
+        }
+
     }
 
 }

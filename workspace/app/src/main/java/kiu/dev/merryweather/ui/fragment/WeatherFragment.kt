@@ -220,7 +220,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                     }
                 }
 
-                saveLocalWeatherData(it)
+                viewModel.saveLocalWeatherData(it)
 
             }
 
@@ -241,72 +241,10 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 L.d("localWeatherData observe : $it")
                 this@WeatherFragment.localWeatherDataList.clear()
                 this@WeatherFragment.localWeatherDataList.addAll(it)
-
+                deleteBeforeLocalWeatherData(this@WeatherFragment.localWeatherDataList)
             }
         }
 
     }
 
-    /**
-     * ROOM 로컬 날씨 데이터 저장
-     */
-    private fun saveLocalWeatherData(data: List<JsonElement>) {
-        // TODO chan 중복된 시간 데이터는 갱신 / 새로운 데이터는 추가,
-        //  초단기, 단기 중기 데이터 꺼내오는 로직 분기처리 필요
-
-
-        // TODO chan 임시로 초단기 데이터 테스트
-        val dataList: MutableList<Weather> = mutableListOf()
-
-        // 시간 값 세팅
-        val timeList: MutableList<Map<String, String>> = mutableListOf()
-        data.forEach {
-            val timeItem = mapOf(
-                "fcstDate" to
-                        it.asJsonObject.asString("fcstDate"),
-                "fcstTime" to
-                        it.asJsonObject.asString("fcstTime")
-            )
-
-            if (!timeList.contains(timeItem)) {
-                timeList.add(timeItem)
-            }
-        }
-
-        timeList.forEach { timeData ->
-            var tmp = ""
-            var sky = ""
-            var pty = ""
-            var pcp = ""
-
-            data.forEach { data ->
-                if (data.asJsonObject.asString("fcstDate") == timeData["fcstDate"] &&
-                    data.asJsonObject.asString("fcstTime") == timeData["fcstTime"]) {
-
-                    if (data.asJsonObject.asString("category") == "PTY") {
-                        pty = data.asJsonObject.asString("fcstValue")
-                    } else if (data.asJsonObject.asString("category") == "T1H") {
-                        tmp = data.asJsonObject.asString("fcstValue")
-                    } else if (data.asJsonObject.asString("category") == "SKY") {
-                        sky = data.asJsonObject.asString("fcstValue")
-                    } else if (data.asJsonObject.asString("category") == "RN1") {
-                        pcp = data.asJsonObject.asString("fcstValue")
-                    }
-                }
-
-            }
-
-            dataList.add(
-                Weather(
-                    time = (timeData["fcstDate"] + timeData["fcstTime"]).toLong(),
-                    tmp = tmp,
-                    sky = sky,
-                    pty = pty,
-                    pcp = pcp
-                )
-            )
-        }
-
-        viewModel.saveLocalWeatherData(dataList)
-    }
 }

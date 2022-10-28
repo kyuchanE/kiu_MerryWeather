@@ -20,6 +20,9 @@ interface WeatherDao {
     @Delete
     fun deleteWeatherData(weather: Weather): Completable
 
+    @Delete
+    fun deleteWeatherData(vararg weather: Weather): Completable
+
     @Query("DELETE FROM weather_item")
     fun deleteAll(): Completable
 }

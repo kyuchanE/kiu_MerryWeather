@@ -165,6 +165,6 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
                     .subscribe()
             }
         }
-
     }
+
 }
