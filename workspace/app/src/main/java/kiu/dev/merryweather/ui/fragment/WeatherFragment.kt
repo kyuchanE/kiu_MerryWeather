@@ -34,6 +34,13 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
         initViewModel()
 
+        with(binding.srlContainer) {
+            this.setOnRefreshListener {
+                L.d("새로 고침 완료!")
+                this.isRefreshing = false
+            }
+        }
+
         binding.tvNow.setOnClickListener {
             reqWeatherUltraNow(
                 C.WeatherData.Location.Seoul["nx"]?:"",
@@ -87,6 +94,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
         } else {
             if (nowTimeHour == 0) {
+                // todo chan 날짜도 하루 뒤로
                 "2330"
             } else {
                 String.format("%02d", nowTimeHour-1) + "55"
@@ -215,7 +223,8 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                             (activity as BaseActivity<*>).context,
                             AppWidgetManager.getInstance((activity as BaseActivity<*>).context),
                             it,
-                            t
+                            t,
+                            ""
                         )
                     }
                 }
