@@ -19,5 +19,3 @@ data class Weather(
     var tmn: String = "",   // 일 최저기온
     var tmx: String = "",   // 일 최고기온
 ): Serializable
-
-// TODO chan 지나간 날씨 데이터 삭제 로직 필요

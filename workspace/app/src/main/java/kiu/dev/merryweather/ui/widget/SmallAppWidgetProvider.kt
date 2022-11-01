@@ -6,8 +6,11 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.view.View
+import android.view.animation.RotateAnimation
 import android.widget.RemoteViews
 import androidx.room.Room
+import com.bumptech.glide.Glide
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -53,6 +56,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
                 setTextViewText(R.id.tv_now, t)
                 setTextViewText(R.id.tv_widget_text, str)
                 setTextViewText(R.id.tv_sky, s)
+                setImageViewResource(R.id.iv_refresh, R.drawable.loading)
             }
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -105,6 +109,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
 
                 val refreshIntent: PendingIntent = Intent(context, SmallAppWidgetProvider::class.java)
                     .setAction("REFRESH_BTN_CLICK")
+                    .putExtra("WIDGET_ID", appWidgetId)
                     .let { intent ->
                         PendingIntent.getBroadcast(context, 0, intent, FLAG_IMMUTABLE)
                     }
@@ -133,7 +138,17 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
             val action = i.action
 
             if (action == "REFRESH_BTN_CLICK"){
-                L.d("onReceive REFRESH_BTN_CLICK")
+                context?.let { mContext ->
+                    val id = i.getIntExtra("WIDGET_ID", 0)
+                    L.d("onReceive Widget ID : $id")
+                    updateRefreshImage(
+                        mContext,
+                        AppWidgetManager.getInstance(mContext),
+                        id
+                    )
+
+                }
+
             }
         }
     }
@@ -219,7 +234,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
         ).subscribeOn(Schedulers.io())
             .observeOn(Schedulers.computation())
             .doOnError { e ->
-
+                L.d("@@@@@ e $e")
             }
             .doOnNext { json ->
                 if (isWeatherSuccess(json)) {
@@ -295,6 +310,21 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
         }
 
         return resultCode == "00"
+    }
+
+    private fun updateRefreshImage(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+    ) {
+        val views: RemoteViews = RemoteViews(
+            context.packageName,
+            R.layout.widget_small
+        ).apply {
+            setImageViewResource(R.id.iv_refresh, R.drawable.ic_launcher_background)
+        }
+        getWeatherData(appWidgetId)
+        appWidgetManager.updateAppWidget(appWidgetId, views)
     }
 
 }
