@@ -14,10 +14,7 @@ import kiu.dev.merryweather.ui.fragment.MainPageAdapter
 import kiu.dev.merryweather.ui.fragment.SettingFragment
 import kiu.dev.merryweather.ui.fragment.WeatherFragment
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
-import kiu.dev.merryweather.utils.L
-import kiu.dev.merryweather.utils.asString
-import kiu.dev.merryweather.utils.getTimeNow
-import kiu.dev.merryweather.utils.toast
+import kiu.dev.merryweather.utils.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {

@@ -17,10 +17,7 @@ import kiu.dev.merryweather.data.local.WidgetId
 import kiu.dev.merryweather.databinding.FragmentWeatherBinding
 import kiu.dev.merryweather.ui.activity.MainViewModel
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
-import kiu.dev.merryweather.utils.L
-import kiu.dev.merryweather.utils.asString
-import kiu.dev.merryweather.utils.getTimeNow
-import kiu.dev.merryweather.utils.toast
+import kiu.dev.merryweather.utils.*
 
 class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     override val layoutId: Int = R.layout.fragment_weather
@@ -84,7 +81,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
      * 기상청 초단기 예보 조회
      */
     private fun reqWeatherUltraNow(nx: String, ny: String) {
-        val nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "YYYYMMdd".getTimeNow()
         val nowTimeHour: Int = "HH".getTimeNow().toInt()
         val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
@@ -94,7 +91,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
         } else {
             if (nowTimeHour == 0) {
-                // todo chan 날짜도 하루 뒤로
+                nowDate = "YYYYMMdd".getYesterday()
                 "2330"
             } else {
                 String.format("%02d", nowTimeHour-1) + "55"
@@ -121,17 +118,16 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
      * 발표 시각 : 0210, 0510, 0810, 1110, 1410, 1710, 2010, 2310
      */
     private fun reqWeatherNow(nx: String, ny: String) {
-        val nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "YYYYMMdd".getTimeNow()
         val nowHour: String = "HH".getTimeNow()
         val nowTime: String = "HHmm".getTimeNow()
         var baseTime = ""
-
-
 
         kotlin.run {
             C.WeatherData.WEATHER_NOW_GET_DATA_TIME.forEachIndexed { index, item ->
                 L.d("reqWeatherNow nowTime : ${nowTime.toInt()}  , item : ${item.toInt()}")
                 if (nowHour == "00" || nowHour == "01") {
+                    nowDate = "YYYYMMdd".getYesterday()
                     baseTime = "2310"
                     return@run
                 } else if (nowTime.toInt() in 200..210){
@@ -146,7 +142,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 }
             }
         }
-
 
         baseTime.toast((activity as BaseActivity<*>))
 

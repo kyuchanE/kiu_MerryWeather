@@ -243,6 +243,20 @@ fun String.getTimeNow(): String {
     }
 }
 
+fun String.getYesterday() : String {
+    return try {
+        val cal = Calendar.getInstance()
+        cal.time = Date()
+        cal.add(Calendar.DATE, -1)
+
+        val simpleDateFormat = SimpleDateFormat(this)
+        simpleDateFormat.format(cal.time)
+    } catch (e: Exception) {
+        L.e(e.message)
+        ""
+    }
+}
+
 ////////////////////////////// ImageView //////////////////////////////
 
 fun ImageView.load(url: String): ImageView {

@@ -204,7 +204,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
     private fun getWeatherData(id: Int) {
         var itemJsonArray: List<JsonElement> = listOf()
 
-        val nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "YYYYMMdd".getTimeNow()
         val nowTimeHour: Int = "HH".getTimeNow().toInt()
         val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
@@ -212,7 +212,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
             String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
         } else {
             if (nowTimeHour == 0) {
-                // todo chan 날짜도 하루 뒤로
+                nowDate = "YYYYMMdd".getYesterday()
                 "2330"
             } else {
                 String.format("%02d", nowTimeHour-1) + "55"
