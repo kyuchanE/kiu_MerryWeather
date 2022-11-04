@@ -47,12 +47,12 @@ class WeatherRepository (
      * @param nx  예보지점 X 좌표
      * @param ny  예보지점 Y 좌표
      */
-    fun getUltraNow(
+    fun getRightNow(
         params: Map<String, Any?> = mapOf(),
         header: Map<String, Any?> = mapOf()
     ): Flowable<JsonObject> {
         return baseApi.getApi(
-            url = C.WeatherApi.WEATHER_ULTRA_NOW,
+            url = C.WeatherApi.WEATHER_RIGHT_NOW,
             params,
             header
         )

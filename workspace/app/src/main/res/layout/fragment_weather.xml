@@ -98,6 +98,14 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
             <!-- End 현재 날씨/위치/온도 -->
 
+            <!-- Start 시간별 날씨 예보 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_time_line"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:paddingVertical="15dp"/>
+            <!-- End 시간별 날씨 예보 -->
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">

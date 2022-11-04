@@ -2,20 +2,20 @@ package kiu.dev.merryweather.ui.fragment
 
 import android.appwidget.AppWidgetManager
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.JsonElement
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
 import kiu.dev.merryweather.base.BaseFragment
 import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.WeatherTimeLineData
 import kiu.dev.merryweather.data.local.Weather
 import kiu.dev.merryweather.data.local.WidgetId
 import kiu.dev.merryweather.databinding.FragmentWeatherBinding
 import kiu.dev.merryweather.ui.activity.MainViewModel
+import kiu.dev.merryweather.ui.fragment.adapter.WeatherTimeLineAdapter
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
 import kiu.dev.merryweather.utils.*
 
@@ -25,31 +25,90 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     private val viewModel by activityViewModels<MainViewModel>()
     private val widgetIdList = mutableListOf<WidgetId>()
     private val localWeatherDataList = mutableListOf<Weather>()
+    private val weatherTimeLineAdapter = lazy { WeatherTimeLineAdapter(mutableListOf()) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         initViewModel()
+        reqWeatherData()
 
         with(binding.srlContainer) {
             this.setOnRefreshListener {
-                L.d("새로 고침 완료!")
+                reqWeatherData()
                 this.isRefreshing = false
             }
         }
 
-        binding.tvNow.setOnClickListener {
-            reqWeatherUltraNow(
-                C.WeatherData.Location.Seoul["nx"]?:"",
-                C.WeatherData.Location.Seoul["ny"]?:""
+        binding.rvTimeLine.apply {
+            this.adapter = weatherTimeLineAdapter.value
+            this.layoutManager = LinearLayoutManager(
+                activity,
+                LinearLayoutManager.HORIZONTAL,
+                false
             )
-
-//            reqWeatherNow(
-//                C.WeatherData.Location.Seoul["nx"]?:"",
-//                C.WeatherData.Location.Seoul["ny"]?:""
-//            )
-
         }
+
+        // TODO chan TEST DATA
+        weatherTimeLineAdapter.value.changeItemList(
+            mutableListOf(
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4"),
+                WeatherTimeLineData(
+                    "Date",
+                    "11:32",
+                    activity?.getDrawable(R.drawable.icon_sunny)!!,
+                    "4")
+            )
+        )
 
         binding.tvWeek.setOnClickListener {
             val nowDate: String = "YYYYMMdd".getTimeNow()
@@ -78,6 +137,17 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     }
 
     /**
+     * 날씨 데이터 요청
+     */
+    private fun reqWeatherData()
+    {
+        reqWeatherNow(
+            C.WeatherData.Location.Seoul["nx"] ?: "",
+            C.WeatherData.Location.Seoul["ny"] ?: ""
+        )
+    }
+
+    /**
      * 기상청 초단기 예보 조회
      */
     private fun reqWeatherUltraNow(nx: String, ny: String) {
@@ -99,7 +169,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
         }
         baseTime.toast((activity as BaseActivity<*>))
 
-        viewModel.getUltraNow(
+        viewModel.getRightNowWeather(
             mapOf(
                 "ServiceKey" to C.WeatherApi.API_KEY,
                 "dataType" to "JSON",
@@ -131,6 +201,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                     baseTime = "2310"
                     return@run
                 } else if (nowTime.toInt() in 200..210){
+                    nowDate = "YYYYMMdd".getYesterday()
                     baseTime = "2310"
                     return@run
                 } else if (item.toInt() > nowTime.toInt()) {
@@ -145,7 +216,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
         baseTime.toast((activity as BaseActivity<*>))
 
-        viewModel.getNow(
+        viewModel.getNowWeather(
             mapOf(
                 "ServiceKey" to C.WeatherApi.API_KEY,
                 "dataType" to "JSON",
@@ -182,18 +253,20 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             weatherNowJson.observe((activity as BaseActivity<*>)) {
                 L.d("weatherNowJson observe : $it")
 
-                var tpm = ""
-                it.forEach {
-                    if (it.asJsonObject.asString("category") == "T1H") {
-                        tpm += "time : ${it.asJsonObject.asString("fcstTime")} value : ${it.asJsonObject.asString("fcstValue")} \n"
-                    }
-                }
+//                var tpm = ""
+//                it.forEach {
+//                    if (it.asJsonObject.asString("category") == "T1H") {
+//                        tpm += "time : ${it.asJsonObject.asString("fcstTime")} value : ${it.asJsonObject.asString("fcstValue")} \n"
+//                    }
+//                }
+//
+//                binding.tvValue.text = tpm
 
-                binding.tvValue.text = tpm
+
             }
 
-            weatherUltraNowJson.observe((activity as BaseActivity<*>)) {
-                L.d("weatherUltraNowJson observe : $it")
+            weatherRightNowJson.observe((activity as BaseActivity<*>)) {
+                L.d("weatherRightNowJson observe : $it")
                 "Ultra Success".toast((activity as BaseActivity<*>))
 
                 val t1hList = arrayListOf<JsonElement>()
@@ -208,10 +281,10 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 }
                 binding.tvValue.text = tpm
 
-                // 위젯 데이터 갱신
                 val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
                 L.d("@@@@@@@@@ t : $t")
 
+                // 위젯 데이터 갱신
                 this@WeatherFragment.widgetIdList.forEach {
                     it.id?.let {
                         SmallAppWidgetProvider.updateAppWidget(
@@ -224,7 +297,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                     }
                 }
 
-                viewModel.saveLocalWeatherData(it)
+                viewModel.saveLocalWeatherData(it, MainViewModel.WeatherType.RIGHT_NOW)
 
             }
 

@@ -7,6 +7,7 @@ import com.google.gson.JsonObject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.base.BaseViewModel
+import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.local.Weather
 import kiu.dev.merryweather.data.local.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
@@ -27,8 +28,8 @@ class MainViewModel (
     private val _weatherNowJson = MutableLiveData<List<JsonElement>>()
     val weatherNowJson : LiveData<List<JsonElement>> get() = _weatherNowJson
 
-    private val _weatherUltraNowJson = MutableLiveData<List<JsonElement>>()
-    val weatherUltraNowJson : LiveData<List<JsonElement>> get() = _weatherUltraNowJson
+    private val _weatherRightNowJson = MutableLiveData<List<JsonElement>>()
+    val weatherRightNowJson : LiveData<List<JsonElement>> get() = _weatherRightNowJson
 
     private val _weatherWeekJson = MutableLiveData<JsonObject>()
     val weatherWeekJson : LiveData<JsonObject> get() = _weatherWeekJson
@@ -39,8 +40,14 @@ class MainViewModel (
     private val _localWeatherDataList = MutableLiveData<List<Weather>>()
     val localWeatherDataList: LiveData<List<Weather>> get() = _localWeatherDataList
 
+    enum class WeatherType {
+        NOW, // 단기 예보
+        RIGHT_NOW, // 초단기 예보
+        WEEK
+    }
+
     /**
-     * 기상청 단기 예보 정보 (1일 8회)
+     * 기상청 단기 예보 정보 (1일 8회) + 끝나고 초단기 예보 조회
      * @param ServiceKey  API KEY
      * @param dataType  JSON, XML
      * @param pageNo : 페이지 번호
@@ -50,7 +57,7 @@ class MainViewModel (
      * @param nx  예보지점 X 좌표
      * @param ny  예보지점 Y 좌표
      */
-    fun getNow(
+    fun getNowWeather(
         params: Map<String, Any?> = mapOf()
     ) {
         _isLoading.postValue(true)
@@ -77,19 +84,47 @@ class MainViewModel (
                                 .asJsonObject("items")
                                 .asJsonArray("item")
                                 .filter {
-                                    it.asJsonObject.asString("category") == "POP" ||
-                                            it.asJsonObject.asString("category") == "PCP" ||
-                                            it.asJsonObject.asString("category") == "TMP" ||
-                                            it.asJsonObject.asString("category") == "SKY" ||
-                                            it.asJsonObject.asString("category") == "TMN" ||
-                                            it.asJsonObject.asString("category") == "TMX" ||
-                                            it.asJsonObject.asString("category") == "PTY"
+                                    it.asJsonObject.asString("category") == "POP" ||    // 강수 확률
+                                            it.asJsonObject.asString("category") == "PCP" || // 1시간 강수량
+                                            it.asJsonObject.asString("category") == "TMP" || // 1시간 기온
+                                            it.asJsonObject.asString("category") == "SKY" || // 하늘
+                                            it.asJsonObject.asString("category") == "TMN" || // 일 최저 기온
+                                            it.asJsonObject.asString("category") == "TMX" || // 일 최고 기온
+                                            it.asJsonObject.asString("category") == "PTY"   // 강수 형태
                                 }
                         _weatherNowJson.postValue(itemsJsonArray)
                     }
                 }
                 .doFinally{
-                    _isLoading.postValue(false)
+                    var nowDate: String = "YYYYMMdd".getTimeNow()
+                    val nowTimeHour: Int = "HH".getTimeNow().toInt()
+                    val nowTimeMinute: Int = "mm".getTimeNow().toInt()
+
+                    L.d("reqWeatherRightNow : $nowDate , hour : $nowTimeHour , minute : $nowTimeMinute")
+
+                    val baseTime: String = if (nowTimeMinute >= 30){
+                        String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
+                    } else {
+                        if (nowTimeHour == 0) {
+                            nowDate = "YYYYMMdd".getYesterday()
+                            "2330"
+                        } else {
+                            String.format("%02d", nowTimeHour-1) + "55"
+                        }
+                    }
+
+                    getRightNowWeather(
+                        mapOf(
+                            "ServiceKey" to C.WeatherApi.API_KEY,
+                            "dataType" to "JSON",
+                            "pageNo" to "1",
+                            "numOfRows" to "50",
+                            "base_date" to nowDate,
+                            "base_time" to baseTime,
+                            "nx" to params["nx"],
+                            "ny" to params["ny"]
+                        )
+                    )
                 }
                 .subscribe()
         )
@@ -107,14 +142,12 @@ class MainViewModel (
      * @param nx  예보지점 X 좌표
      * @param ny  예보지점 Y 좌표
      */
-    fun getUltraNow(
+    fun getRightNowWeather(
         params: Map<String, Any?> = mapOf()
     ) {
-        // TODO 새로고침 또는 앱 첫 진입시
 
-        _isLoading.postValue(true)
         addDisposable(
-            weatherRepository.getUltraNow(
+            weatherRepository.getRightNow(
                 params = params
             ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -138,7 +171,7 @@ class MainViewModel (
                             }
 
                         L.d("itemsJsonArray $itemsJsonArray")
-                        _weatherUltraNowJson.postValue(itemsJsonArray)
+                        _weatherRightNowJson.postValue(itemsJsonArray)
                     }
                 }
                 .doFinally{
@@ -270,7 +303,7 @@ class MainViewModel (
     /**
      * ROOM 로컬 날씨 데이터 저장
      */
-    fun saveLocalWeatherData(data: List<JsonElement>) {
+    fun saveLocalWeatherData(data: List<JsonElement>, type: WeatherType) {
         // TODO chan 중복된 시간 데이터는 갱신 / 새로운 데이터는 추가,
         //  초단기, 단기 중기 데이터 꺼내오는 로직 분기처리 필요
 
@@ -324,6 +357,34 @@ class MainViewModel (
                 )
             )
         }
+
+        addDisposable(
+            weatherRepository.saveLocalWeatherData(*dataList.toTypedArray())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .subscribe()
+        )
+    }
+
+    fun saveLocalWeatherDataa(data: List<Weather>) {
+        // TODO chan 중복된 시간 데이터는 갱신 / 새로운 데이터는 추가,
+        //  초단기, 단기 중기 데이터 꺼내오는 로직 분기처리 필요
+
+        // TODO chan 임시로 초단기 데이터 테스트
+        val dataList: MutableList<Weather> = mutableListOf()
+
+        dataList.add(
+            Weather(
+                time = data[0].time,
+                tmp = data[0].tmp,
+                sky = data[0].sky,
+                pty = data[0].pty,
+                pcp = data[0].pcp
+            )
+        )
 
         addDisposable(
             weatherRepository.saveLocalWeatherData(*dataList.toTypedArray())

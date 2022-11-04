@@ -6,14 +6,9 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.view.View
-import android.view.animation.RotateAnimation
 import android.widget.RemoteViews
-import androidx.room.Room
-import com.bumptech.glide.Glide
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.config.C
@@ -220,7 +215,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
         }
         L.d("@@@@@ getWeatherData baseTime : $baseTime")
         get<BasicApi>().getApi(
-            url = C.WeatherApi.WEATHER_ULTRA_NOW,
+            url = C.WeatherApi.WEATHER_RIGHT_NOW,
             mapOf(
                 "ServiceKey" to C.WeatherApi.API_KEY,
                 "dataType" to "JSON",

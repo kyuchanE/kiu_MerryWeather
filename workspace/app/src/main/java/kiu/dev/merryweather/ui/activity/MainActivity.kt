@@ -1,19 +1,14 @@
 package kiu.dev.merryweather.ui.activity
 
-import android.appwidget.AppWidgetManager
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
-import com.google.gson.JsonElement
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
-import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.databinding.ActivityMainBinding
 import kiu.dev.merryweather.ui.fragment.MainFragment
 import kiu.dev.merryweather.ui.fragment.MainPageAdapter
 import kiu.dev.merryweather.ui.fragment.SettingFragment
 import kiu.dev.merryweather.ui.fragment.WeatherFragment
-import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
 import kiu.dev.merryweather.utils.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -82,8 +77,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 L.d("weatherNowJson observe : $it")
             }
 
-            weatherUltraNowJson.observe(this@MainActivity) {
-                L.d("weatherUltraNowJson observe : $it")
+            weatherRightNowJson.observe(this@MainActivity) {
+                L.d("weatherJson observe : $it")
             }
 
             weatherWeekJson.observe(this@MainActivity) {
