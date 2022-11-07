@@ -1,6 +1,7 @@
 package kiu.dev.merryweather.ui.fragment
 
 import android.appwidget.AppWidgetManager
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.activityViewModels
@@ -48,67 +49,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 false
             )
         }
-
-        // TODO chan TEST DATA
-        weatherTimeLineAdapter.value.changeItemList(
-            mutableListOf(
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4"),
-                WeatherTimeLineData(
-                    "Date",
-                    "11:32",
-                    activity?.getDrawable(R.drawable.icon_sunny)!!,
-                    "4")
-            )
-        )
 
         binding.tvWeek.setOnClickListener {
             val nowDate: String = "YYYYMMdd".getTimeNow()
@@ -261,7 +201,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 //                }
 //
 //                binding.tvValue.text = tpm
-
+                viewModel.saveLocalWeatherData(it, MainViewModel.WeatherType.NOW)
 
             }
 
@@ -319,6 +259,39 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 this@WeatherFragment.localWeatherDataList.clear()
                 this@WeatherFragment.localWeatherDataList.addAll(it)
                 deleteBeforeLocalWeatherData(this@WeatherFragment.localWeatherDataList)
+
+                // 시간별 날씨 정보
+                val timeLineList: MutableList<WeatherTimeLineData> = mutableListOf()
+                for (i in 0 until 20) {
+                    var skyDrawable: Drawable? = null
+                    with(this@WeatherFragment.localWeatherDataList[i]) {
+                        // TODO chan 날씨 아이콘 재정렬 필요
+                        skyDrawable = when(this.sky) {
+                            "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_sunny) }
+                            "2", "3" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy_a_lot) }
+                            "4" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy) }
+                            else -> { null }
+                        }
+
+                        skyDrawable = when(this.pty) {
+                            "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                            "5" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                            else -> skyDrawable
+                        }
+
+                        timeLineList.add(
+                            WeatherTimeLineData(
+                                date = this.time.toString().substring(0,8),
+                                time = this.time.toString().substring(8),
+                                drawable = skyDrawable,
+                                temperature = this.tmp,
+                                pop = this.pop
+                            )
+                        )
+                    }
+
+                }
+                weatherTimeLineAdapter.value.changeItemList(timeLineList)
             }
         }
 

@@ -301,6 +301,51 @@ class MainViewModel (
     }
 
     /**
+     * 로컬에 초단기 날씨 데이터 갱신
+     */
+    fun saveLocalNowWeatherData(dataList: MutableList<Weather>) {
+        val saveLocalList = mutableListOf<Weather>()
+        addDisposable(
+            weatherRepository.getLocalWeatherData()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { list ->
+                    L.d("local weather list : $list")
+                    list.forEach { localList ->
+                        dataList.forEach{ rightNowList ->
+                            if (localList.time == rightNowList.time){
+                                saveLocalList.add(
+                                    Weather(
+                                        time = localList.time,
+                                        location = localList.location,
+                                        pop = localList.pop,
+                                        pty = localList.pty,
+                                        tmn = localList.tmn,
+                                        tmx = localList.tmx,
+                                        sky = rightNowList.sky,
+                                        tmp = rightNowList.tmp,
+                                        pcp = rightNowList.pcp
+                                    )
+                                )
+                            } else {
+                                saveLocalList.add(localList)
+                            }
+                        }
+                    }
+                }
+                .doFinally {
+                    if (saveLocalList.size > 0) {
+                        saveLocalWeatherData(saveLocalList)
+                    }
+                }
+                .subscribe()
+        )
+    }
+
+    /**
      * ROOM 로컬 날씨 데이터 저장
      */
     fun saveLocalWeatherData(data: List<JsonElement>, type: WeatherType) {
@@ -326,24 +371,56 @@ class MainViewModel (
         }
 
         timeList.forEach { timeData ->
-            var tmp = ""
-            var sky = ""
-            var pty = ""
-            var pcp = ""
+            var tmp = ""    // 1시간 기온
+            var sky = ""    // 하늘
+            var pty = ""    // 강수 형태
+            var pcp = ""    // 1시간 강수량
+            var pop = ""    // 강수 확률
+            var tmn = ""    // 일 최저기온
+            var tmx = ""    // 일 최고기온
+            var location = // 위치 정보
+                data[0].asJsonObject.asString("nx") + "." +
+                        data[0].asJsonObject.asString("ny")
+
 
             data.forEach { data ->
                 if (data.asJsonObject.asString("fcstDate") == timeData["fcstDate"] &&
                     data.asJsonObject.asString("fcstTime") == timeData["fcstTime"]) {
 
-                    if (data.asJsonObject.asString("category") == "PTY") {
-                        pty = data.asJsonObject.asString("fcstValue")
-                    } else if (data.asJsonObject.asString("category") == "T1H") {
-                        tmp = data.asJsonObject.asString("fcstValue")
-                    } else if (data.asJsonObject.asString("category") == "SKY") {
-                        sky = data.asJsonObject.asString("fcstValue")
-                    } else if (data.asJsonObject.asString("category") == "RN1") {
-                        pcp = data.asJsonObject.asString("fcstValue")
+                    when(type) {
+                        WeatherType.RIGHT_NOW -> {      // 초단기
+                            // TODO chan 나머지 값들 유지 (ex pop 강수확률)  초단기 단기 중기 테이블을 따로 둬야하나
+                            if (data.asJsonObject.asString("category") == "PTY") {
+                                pty = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "T1H") {
+                                tmp = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "SKY") {
+                                sky = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "RN1") {
+                                pcp = data.asJsonObject.asString("fcstValue")
+                            }
+                        }
+                        WeatherType.NOW -> {            // 단기
+                            if (data.asJsonObject.asString("category") == "PTY") {
+                                pty = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "TMP") {
+                                tmp = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "SKY") {
+                                sky = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "PCP") {
+                                pcp = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "POP") {
+                                pop = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "TMN") {
+                                tmn = data.asJsonObject.asString("fcstValue")
+                            } else if (data.asJsonObject.asString("category") == "TMX") {
+                                tmx = data.asJsonObject.asString("fcstValue")
+                            }
+                        }
+
+                        else -> {}
                     }
+
                 }
             }
 
@@ -353,41 +430,40 @@ class MainViewModel (
                     tmp = tmp,
                     sky = sky,
                     pty = pty,
-                    pcp = pcp
+                    pcp = pcp,
+                    pop = pop,
+                    location = location,
+                    tmn = tmn,
+                    tmx = tmx
                 )
             )
         }
 
-        addDisposable(
-            weatherRepository.saveLocalWeatherData(*dataList.toTypedArray())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError { e ->
-                    L.d("e : $e")
-                }
-                .subscribe()
-        )
+        when(type) {
+            WeatherType.RIGHT_NOW -> {      // 초단기
+                saveLocalNowWeatherData(dataList)
+            }
+            WeatherType.NOW -> {            // 단기
+                addDisposable(
+                    weatherRepository.saveLocalWeatherData(*dataList.toTypedArray())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnError { e ->
+                            L.d("e : $e")
+                        }
+                        .subscribe()
+                )
+            }
+
+            else -> {}
+        }
+
+
     }
 
-    fun saveLocalWeatherDataa(data: List<Weather>) {
-        // TODO chan 중복된 시간 데이터는 갱신 / 새로운 데이터는 추가,
-        //  초단기, 단기 중기 데이터 꺼내오는 로직 분기처리 필요
-
-        // TODO chan 임시로 초단기 데이터 테스트
-        val dataList: MutableList<Weather> = mutableListOf()
-
-        dataList.add(
-            Weather(
-                time = data[0].time,
-                tmp = data[0].tmp,
-                sky = data[0].sky,
-                pty = data[0].pty,
-                pcp = data[0].pcp
-            )
-        )
-
+    private fun saveLocalWeatherData(data: MutableList<Weather>) {
         addDisposable(
-            weatherRepository.saveLocalWeatherData(*dataList.toTypedArray())
+            weatherRepository.saveLocalWeatherData(*data.toTypedArray())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError { e ->
@@ -402,10 +478,15 @@ class MainViewModel (
      */
     fun deleteBeforeLocalWeatherData(weatherDataList: MutableList<Weather>) {
         val today = "YYYYMMdd".getTimeNow().toLong()
+        val time = "HHmm".getTimeNow().toInt()
         val deleteDataList: MutableList<Weather> = mutableListOf()
 
         weatherDataList.forEach {
+            // TODO chan 날짜 비교 후 시간 비교 추가하여 지난시간 데이터 삭제
             if (it.time/10000 < today) {
+                deleteDataList.add(it)
+            } else if (it.time/10000 == today &&
+                it.time%10000 < time-100) {
                 deleteDataList.add(it)
             }
         }

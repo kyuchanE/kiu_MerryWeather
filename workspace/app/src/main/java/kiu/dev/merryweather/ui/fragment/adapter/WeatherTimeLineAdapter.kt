@@ -17,6 +17,7 @@ class WeatherTimeLineAdapter(
 
     init {
         itemList.addAll(weatherItems)
+        setHasStableIds(true)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherTimeLineViewHolder {
@@ -33,6 +34,10 @@ class WeatherTimeLineAdapter(
 
     fun getItemList(): MutableList<WeatherTimeLineData> = itemList
 
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
     fun changeItemList(weatherItems: MutableList<WeatherTimeLineData>) {
         itemList.clear()
         itemList.addAll(weatherItems)
@@ -45,11 +50,15 @@ class WeatherTimeLineAdapter(
         private val binding: ItemWeatherTimeLineBinding? = DataBindingUtil.bind(itemView)
 
         fun bindView(position: Int) {
-            binding?.let {
+            binding?.let { b ->
                 with(itemList[position]) {
-                    it.tvTime.text = this.time
-                    it.tvTemperature.text = this.temperature
-                    it.ivWeather.setImageDrawable(this.drawable)
+                    b.tvTime.text = this.time
+                    b.tvTemperature.text = this.temperature
+                    b.tvPop.text = this.pop
+                    this.drawable?.let { d ->
+                        b.ivWeather.setImageDrawable(d)
+                    }
+
                 }
             }
         }

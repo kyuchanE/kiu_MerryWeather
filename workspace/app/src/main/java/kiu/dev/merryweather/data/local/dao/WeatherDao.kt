@@ -8,7 +8,7 @@ import kiu.dev.merryweather.data.local.Weather
 @Dao
 interface WeatherDao {
 
-    @Query("SELECT * FROM weather_item")
+    @Query("SELECT * FROM weather_item order by time asc")
     fun getWeatherData(): Flowable<List<Weather>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

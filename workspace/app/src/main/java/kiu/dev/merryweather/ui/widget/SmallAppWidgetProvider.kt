@@ -268,6 +268,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
                         }
                     }
 
+                    //TODO chan 날씨 비/눈 구분값 필요 
                     mContext?.let {
                         updateAppWidget(
                             it,
