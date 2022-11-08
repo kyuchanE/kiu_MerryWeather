@@ -8,8 +8,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.base.BaseViewModel
 import kiu.dev.merryweather.config.C
-import kiu.dev.merryweather.data.local.Weather
-import kiu.dev.merryweather.data.local.WidgetId
+import kiu.dev.merryweather.data.local.weather.now.WeatherNow
+import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.utils.*
@@ -31,19 +31,22 @@ class MainViewModel (
     private val _weatherRightNowJson = MutableLiveData<List<JsonElement>>()
     val weatherRightNowJson : LiveData<List<JsonElement>> get() = _weatherRightNowJson
 
-    private val _weatherWeekJson = MutableLiveData<JsonObject>()
-    val weatherWeekJson : LiveData<JsonObject> get() = _weatherWeekJson
+    private val _weatherMidTaJson = MutableLiveData<JsonElement>()
+    val weatherMidTaJson : LiveData<JsonElement> get() = _weatherMidTaJson
+
+    private val _weatherMidFcstJson = MutableLiveData<JsonElement>()
+    val weatherMidFcstJson : LiveData<JsonElement> get() = _weatherMidFcstJson
 
     private val _widgetIdList = MutableLiveData<List<WidgetId>>()
     val widgetIdList : LiveData<List<WidgetId>> get() = _widgetIdList
 
-    private val _localWeatherDataList = MutableLiveData<List<Weather>>()
-    val localWeatherDataList: LiveData<List<Weather>> get() = _localWeatherDataList
+    private val _localWeatherNowDataList = MutableLiveData<List<WeatherNow>>()
+    val localWeatherNowDataList: LiveData<List<WeatherNow>> get() = _localWeatherNowDataList
 
     enum class WeatherType {
         NOW, // 단기 예보
         RIGHT_NOW, // 초단기 예보
-        WEEK
+        MID
     }
 
     /**
@@ -216,6 +219,7 @@ class MainViewModel (
         )
     }
 
+
     /**
      * 기상청 중기 기온 정보
      * @param ServiceKey  API KEY
@@ -225,12 +229,12 @@ class MainViewModel (
      * @param regId  예보구역 코드 (11B10101 서울)
      * @param tmFc  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
      */
-    fun getWeek(
+    fun getWeatherMid(
         params: Map<String, Any?> = mapOf()
     ) {
         _isLoading.postValue(true)
         addDisposable(
-            weatherRepository.getWeek(
+            weatherRepository.getWeatherMidTa(
                 params = params
             ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -240,7 +244,49 @@ class MainViewModel (
                 .doOnNext { json ->
                     L.d("json : $json")
                     if (isWeatherSuccess(json)){
-                        _weatherWeekJson.postValue(json)
+                        _weatherMidTaJson.postValue(json)
+                    }
+                }
+                .doFinally{
+                    getWeatherMidFcst(
+                        mapOf(
+                            "serviceKey" to C.WeatherApi.API_KEY,
+                            "dataType" to "JSON",
+                            "pageNo" to "1",
+                            "numOfRows" to "10",
+                            "regId" to "11B00000",
+                            "tmFc" to "202211080600"
+                        )
+                    )
+                }
+                .subscribe()
+        )
+    }
+
+    /**
+     * 기상청 중기 육상 예보 정보
+     * @param ServiceKey  API KEY
+     * @param dataType  JSON, XML
+     * @param pageNo  페이지 번호
+     * @param numOfRows  한 페이지 결과 수
+     * @param regId  예보구역 코드 (11B10101 서울)
+     * @param tmFc  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
+     */
+    fun getWeatherMidFcst(
+        params: Map<String, Any?> = mapOf()
+    ) {
+        addDisposable(
+            weatherRepository.getWeatherMidFcst(
+                params = params
+            ).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { json ->
+                    L.d("json : $json")
+                    if (isWeatherSuccess(json)){
+                        _weatherMidFcstJson.postValue(json)
                     }
                 }
                 .doFinally{
@@ -248,7 +294,6 @@ class MainViewModel (
                 }
                 .subscribe()
         )
-
     }
 
     /**
@@ -294,7 +339,7 @@ class MainViewModel (
                 }
                 .doOnNext { list ->
                     L.d("local weather list : $list")
-                    _localWeatherDataList.postValue(list)
+                    _localWeatherNowDataList.postValue(list)
                 }
                 .subscribe()
         )
@@ -303,8 +348,8 @@ class MainViewModel (
     /**
      * 로컬에 초단기 날씨 데이터 갱신
      */
-    fun saveLocalNowWeatherData(dataList: MutableList<Weather>) {
-        val saveLocalList = mutableListOf<Weather>()
+    fun saveLocalNowWeatherData(dataList: MutableList<WeatherNow>) {
+        val saveLocalList = mutableListOf<WeatherNow>()
         addDisposable(
             weatherRepository.getLocalWeatherData()
                 .subscribeOn(Schedulers.io())
@@ -318,7 +363,7 @@ class MainViewModel (
                         dataList.forEach{ rightNowList ->
                             if (localList.time == rightNowList.time){
                                 saveLocalList.add(
-                                    Weather(
+                                    WeatherNow(
                                         time = localList.time,
                                         location = localList.location,
                                         pop = localList.pop,
@@ -353,7 +398,7 @@ class MainViewModel (
         //  초단기, 단기 중기 데이터 꺼내오는 로직 분기처리 필요
 
         // TODO chan 임시로 초단기 데이터 테스트
-        val dataList: MutableList<Weather> = mutableListOf()
+        val dataList: MutableList<WeatherNow> = mutableListOf()
 
         // 시간 값 세팅
         val timeList: MutableList<Map<String, String>> = mutableListOf()
@@ -425,7 +470,7 @@ class MainViewModel (
             }
 
             dataList.add(
-                Weather(
+                WeatherNow(
                     time = (timeData["fcstDate"] + timeData["fcstTime"]).toLong(),
                     tmp = tmp,
                     sky = sky,
@@ -461,7 +506,7 @@ class MainViewModel (
 
     }
 
-    private fun saveLocalWeatherData(data: MutableList<Weather>) {
+    private fun saveLocalWeatherData(data: MutableList<WeatherNow>) {
         addDisposable(
             weatherRepository.saveLocalWeatherData(*data.toTypedArray())
                 .subscribeOn(Schedulers.io())
@@ -476,12 +521,12 @@ class MainViewModel (
     /**
      * ROOM 로컬 지난 날씨 데이터 삭제
      */
-    fun deleteBeforeLocalWeatherData(weatherDataList: MutableList<Weather>) {
+    fun deleteBeforeLocalWeatherData(weatherNowDataList: MutableList<WeatherNow>) {
         val today = "YYYYMMdd".getTimeNow().toLong()
         val time = "HHmm".getTimeNow().toInt()
-        val deleteDataList: MutableList<Weather> = mutableListOf()
+        val deleteDataList: MutableList<WeatherNow> = mutableListOf()
 
-        weatherDataList.forEach {
+        weatherNowDataList.forEach {
             // TODO chan 날짜 비교 후 시간 비교 추가하여 지난시간 데이터 삭제
             if (it.time/10000 < today) {
                 deleteDataList.add(it)

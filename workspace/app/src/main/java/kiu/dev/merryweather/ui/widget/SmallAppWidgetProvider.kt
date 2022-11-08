@@ -13,8 +13,8 @@ import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.BasicApi
-import kiu.dev.merryweather.data.local.WidgetId
-import kiu.dev.merryweather.data.local.WidgetIdDataBase
+import kiu.dev.merryweather.data.local.widget.WidgetId
+import kiu.dev.merryweather.data.local.widget.WidgetIdDataBase
 import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.utils.*
 import org.koin.core.component.KoinComponent
@@ -268,7 +268,7 @@ class SmallAppWidgetProvider : AppWidgetProvider(),  KoinComponent{
                         }
                     }
 
-                    //TODO chan 날씨 비/눈 구분값 필요 
+                    //TODO chan 날씨 비/눈 구분값 필요
                     mContext?.let {
                         updateAppWidget(
                             it,

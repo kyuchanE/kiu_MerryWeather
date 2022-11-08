@@ -2,8 +2,8 @@ package kiu.dev.merryweather.di
 
 import androidx.room.Room
 import kiu.dev.merryweather.config.C
-import kiu.dev.merryweather.data.local.WeatherDataBase
-import kiu.dev.merryweather.data.local.WidgetIdDataBase
+import kiu.dev.merryweather.data.local.weather.now.WeatherDataBase
+import kiu.dev.merryweather.data.local.widget.WidgetIdDataBase
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 
@@ -27,7 +27,7 @@ val databaseModule = module {
         Room.databaseBuilder(
             androidApplication(),
             WeatherDataBase::class.java,
-            C.RoomTableName.WEATHER_ITEM
+            C.RoomTableName.WEATHER_NOW
         )
             .fallbackToDestructiveMigration()
             .build()

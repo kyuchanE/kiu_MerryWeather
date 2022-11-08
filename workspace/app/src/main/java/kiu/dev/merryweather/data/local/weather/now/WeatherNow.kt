@@ -1,4 +1,4 @@
-package kiu.dev.merryweather.data.local
+package kiu.dev.merryweather.data.local.weather.now
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -6,8 +6,8 @@ import kiu.dev.merryweather.config.C
 import java.io.Serializable
 
 
-@Entity(tableName = C.RoomTableName.WEATHER_ITEM)
-data class Weather(
+@Entity(tableName = C.RoomTableName.WEATHER_NOW)
+data class WeatherNow(
     @PrimaryKey(autoGenerate = true)
     var time: Long = 0L,  // 시간
     var location: String = "",   // 위치 정보

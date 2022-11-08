@@ -81,7 +81,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 L.d("weatherJson observe : $it")
             }
 
-            weatherWeekJson.observe(this@MainActivity) {
+            weatherMidTaJson.observe(this@MainActivity) {
                 L.d("weatherWeekJson observe : $it")
             }
         }

@@ -6,7 +6,8 @@ object C {
         const val API_KEY: String = "imXXF1JRLGEMorO+ytbZBX46425hIjMF7TZX39op4qXMjei5lTNeIhJJXbIPobLmpMwr98+hrMHkLrHL726Zng=="
         const val WEATHER_NOW: String = "VilageFcstInfoService_2.0/getVilageFcst"
         const val WEATHER_RIGHT_NOW: String = "VilageFcstInfoService_2.0/getUltraSrtFcst"
-        const val WEATHER_WEEK: String = "MidFcstInfoService/getMidTa"
+        const val WEATHER_MID_TA: String = "MidFcstInfoService/getMidTa"
+        const val WEATHER_MID_FCST: String = "MidFcstInfoService/getMidLandFcst"
     }
 
     object WeatherData {
@@ -42,7 +43,8 @@ object C {
 
     object RoomTableName {
         const val WIDGET_ID = "widget_id"           // 위젯 아이디 테이블
-        const val WEATHER_ITEM = "weather_item"     // 날씨 데이터 테이블
+        const val WEATHER_NOW = "weather_now"     // 날씨 데이터 테이블
+        const val WEATHER_MID = "weather_mid"
     }
 
 }

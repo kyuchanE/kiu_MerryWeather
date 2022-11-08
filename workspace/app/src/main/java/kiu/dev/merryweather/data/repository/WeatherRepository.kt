@@ -5,13 +5,13 @@ import io.reactivex.Completable
 import io.reactivex.Flowable
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.BasicApi
-import kiu.dev.merryweather.data.local.Weather
-import kiu.dev.merryweather.data.local.dao.WeatherDao
+import kiu.dev.merryweather.data.local.weather.now.WeatherNow
+import kiu.dev.merryweather.data.local.dao.WeatherNowDao
 import org.koin.core.component.KoinComponent
 
 class WeatherRepository (
     private val baseApi: BasicApi,
-    private val weatherDao: WeatherDao
+    private val weatherNowDao: WeatherNowDao
 ): KoinComponent {
 
     /**
@@ -67,12 +67,32 @@ class WeatherRepository (
      * @param regId  예보구역 코드 (11B10101 서울)
      * @param tmFc  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
      */
-    fun getWeek(
+    fun getWeatherMidTa(
         params: Map<String, Any?> = mapOf(),
         header: Map<String, Any?> = mapOf()
     ): Flowable<JsonObject> {
         return baseApi.getApi(
-            url = C.WeatherApi.WEATHER_WEEK,
+            url = C.WeatherApi.WEATHER_MID_TA,
+            params,
+            header
+        )
+    }
+
+    /**
+     * 기상청 중기 육상 예보 정보
+     * @param ServiceKey  API KEY
+     * @param dataType  JSON, XML
+     * @param pageNo  페이지 번호
+     * @param numOfRows  한 페이지 결과 수
+     * @param regId  예보구역 코드 (11B10101 서울)
+     * @param tmFc  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
+     */
+    fun getWeatherMidFcst(
+        params: Map<String, Any?> = mapOf(),
+        header: Map<String, Any?> = mapOf()
+    ): Flowable<JsonObject> {
+        return baseApi.getApi(
+            url = C.WeatherApi.WEATHER_MID_FCST,
             params,
             header
         )
@@ -81,26 +101,26 @@ class WeatherRepository (
     /**
      * 로컬에 저장된 날씨 데이터 조회
      */
-    fun getLocalWeatherData(): Flowable<List<Weather>> =
-        weatherDao.getWeatherData()
+    fun getLocalWeatherData(): Flowable<List<WeatherNow>> =
+        weatherNowDao.getWeatherData()
 
     /**
      * 로컬에 날씨 데이터 저장
      */
-    fun saveLocalWeatherData(vararg weather: Weather): Completable =
-        weatherDao.insertWeatherData(*weather)
+    fun saveLocalWeatherData(vararg weatherNow: WeatherNow): Completable =
+        weatherNowDao.insertWeatherData(*weatherNow)
 
     /**
      * 로컬 날씨 데이터 삭제
      */
-    fun deleteLocalWeatherData(data: Weather): Completable =
-        weatherDao.deleteWeatherData(data)
+    fun deleteLocalWeatherData(data: WeatherNow): Completable =
+        weatherNowDao.deleteWeatherData(data)
 
 
     /**
      * 로컬 날씨 데이터 삭제
      */
-    fun deleteLocalWeatherData(vararg weather: Weather): Completable =
-        weatherDao.deleteWeatherData(*weather)
+    fun deleteLocalWeatherData(vararg weatherNow: WeatherNow): Completable =
+        weatherNowDao.deleteWeatherData(*weatherNow)
 
 }

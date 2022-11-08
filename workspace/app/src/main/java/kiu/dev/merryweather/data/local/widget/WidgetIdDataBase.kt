@@ -1,4 +1,4 @@
-package kiu.dev.merryweather.data.local
+package kiu.dev.merryweather.data.local.widget
 
 import androidx.room.Database
 import androidx.room.RoomDatabase

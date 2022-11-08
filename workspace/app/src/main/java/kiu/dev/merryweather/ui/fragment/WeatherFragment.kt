@@ -5,15 +5,14 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.JsonElement
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
 import kiu.dev.merryweather.base.BaseFragment
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.WeatherTimeLineData
-import kiu.dev.merryweather.data.local.Weather
-import kiu.dev.merryweather.data.local.WidgetId
+import kiu.dev.merryweather.data.local.weather.now.WeatherNow
+import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.databinding.FragmentWeatherBinding
 import kiu.dev.merryweather.ui.activity.MainViewModel
 import kiu.dev.merryweather.ui.fragment.adapter.WeatherTimeLineAdapter
@@ -25,7 +24,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
     private val viewModel by activityViewModels<MainViewModel>()
     private val widgetIdList = mutableListOf<WidgetId>()
-    private val localWeatherDataList = mutableListOf<Weather>()
+    private val localWeatherNowDataList = mutableListOf<WeatherNow>()
     private val weatherTimeLineAdapter = lazy { WeatherTimeLineAdapter(mutableListOf()) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -41,32 +40,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             }
         }
 
-        binding.rvTimeLine.apply {
-            this.adapter = weatherTimeLineAdapter.value
-            this.layoutManager = LinearLayoutManager(
-                activity,
-                LinearLayoutManager.HORIZONTAL,
-                false
-            )
-        }
-
-        binding.tvWeek.setOnClickListener {
-            val nowDate: String = "YYYYMMdd".getTimeNow()
-            val nowTime: String = "HHmm".getTimeNow()
-            L.d("Now date : $nowDate , time : $nowTime")
-            viewModel.getWeek(
-                mapOf(
-                    "ServiceKey" to C.WeatherApi.API_KEY,
-                    "dataType" to "JSON",
-                    "pageNo" to "1",
-                    "numOfRows" to "50",
-                    "base_date" to nowDate,
-                    "base_time" to "0500",
-                    "nx" to C.WeatherData.Location.Seoul["nx"],
-                    "ny" to C.WeatherData.Location.Seoul["ny"]
-                )
-            )
-        }
     }
 
     override fun onResume() {
@@ -85,6 +58,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             C.WeatherData.Location.Seoul["nx"] ?: "",
             C.WeatherData.Location.Seoul["ny"] ?: ""
         )
+        reqWeatherMid()
     }
 
     /**
@@ -170,6 +144,23 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
         )
     }
 
+    /**
+     * 기상청 중기 예보 조회
+     */
+    private fun reqWeatherMid() {
+        viewModel.getWeatherMid(
+            mapOf(
+                "serviceKey" to C.WeatherApi.API_KEY,
+                "dataType" to "JSON",
+                "pageNo" to "1",
+                "numOfRows" to "10",
+                "regId" to "11B10101",
+                "tmFc" to "202211080600"
+            )
+        )
+
+    }
+
 
     /**
      * viewModel observe 세팅
@@ -211,7 +202,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
                 val t1hList = arrayListOf<JsonElement>()
 
-                // TODO chan 임시 날씨 데이터 show
                 var tpm = ""
                 it.forEach {
                     if (it.asJsonObject.asString("category") == "T1H") {
@@ -219,10 +209,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                         tpm += "time : ${it.asJsonObject.asString("fcstTime")} value : ${it.asJsonObject.asString("fcstValue")} \n"
                     }
                 }
-                binding.tvValue.text = tpm
-
                 val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
-                L.d("@@@@@@@@@ t : $t")
 
                 // 위젯 데이터 갱신
                 this@WeatherFragment.widgetIdList.forEach {
@@ -241,7 +228,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
             }
 
-            weatherWeekJson.observe((activity as BaseActivity<*>)) {
+            weatherMidTaJson.observe((activity as BaseActivity<*>)) {
                 L.d("weatherWeekJson observe : $it")
             }
 
@@ -254,44 +241,54 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 L.d("fragment widgetIdList : ${this@WeatherFragment.widgetIdList}")
             }
 
-            localWeatherDataList.observe((activity as BaseActivity<*>)) {
+            localWeatherNowDataList.observe((activity as BaseActivity<*>)) {
                 L.d("localWeatherData observe : $it")
-                this@WeatherFragment.localWeatherDataList.clear()
-                this@WeatherFragment.localWeatherDataList.addAll(it)
-                deleteBeforeLocalWeatherData(this@WeatherFragment.localWeatherDataList)
+                this@WeatherFragment.localWeatherNowDataList.clear()
+                this@WeatherFragment.localWeatherNowDataList.addAll(it)
+                deleteBeforeLocalWeatherData(this@WeatherFragment.localWeatherNowDataList)
 
                 // 시간별 날씨 정보
                 val timeLineList: MutableList<WeatherTimeLineData> = mutableListOf()
                 for (i in 0 until 20) {
                     var skyDrawable: Drawable? = null
-                    with(this@WeatherFragment.localWeatherDataList[i]) {
-                        // TODO chan 날씨 아이콘 재정렬 필요
-                        skyDrawable = when(this.sky) {
-                            "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_sunny) }
-                            "2", "3" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy_a_lot) }
-                            "4" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy) }
-                            else -> { null }
-                        }
+                    if (this@WeatherFragment.localWeatherNowDataList.size > 0) {
+                        with(this@WeatherFragment.localWeatherNowDataList[i]) {
+                            // TODO chan 날씨 아이콘 재정렬 필요
+                            skyDrawable = when(this.sky) {
+                                "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_sunny) }
+                                "2", "3" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy_a_lot) }
+                                "4" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy) }
+                                else -> { null }
+                            }
 
-                        skyDrawable = when(this.pty) {
-                            "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
-                            "5" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
-                            else -> skyDrawable
-                        }
+                            skyDrawable = when(this.pty) {
+                                "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                                "5" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                                else -> skyDrawable
+                            }
 
-                        timeLineList.add(
-                            WeatherTimeLineData(
-                                date = this.time.toString().substring(0,8),
-                                time = this.time.toString().substring(8),
-                                drawable = skyDrawable,
-                                temperature = this.tmp,
-                                pop = this.pop
+                            timeLineList.add(
+                                WeatherTimeLineData(
+                                    date = this.time.toString().substring(0,8),
+                                    time = this.time.toString().substring(8),
+                                    drawable = skyDrawable,
+                                    temperature = this.tmp,
+                                    pop = this.pop
+                                )
                             )
-                        )
+                        }
                     }
 
                 }
                 weatherTimeLineAdapter.value.changeItemList(timeLineList)
+            }
+
+            weatherMidTaJson.observe((activity as BaseActivity<*>)) {
+                L.d("weatherMidTaJson observe : $it")
+            }
+
+            weatherMidFcstJson.observe((activity as BaseActivity<*>)) {
+                L.d("weatherMidFcstJson observe : $it")
             }
         }
 

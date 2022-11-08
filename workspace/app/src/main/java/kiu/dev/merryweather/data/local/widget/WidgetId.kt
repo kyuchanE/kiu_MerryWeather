@@ -1,4 +1,4 @@
-package kiu.dev.merryweather.data.local
+package kiu.dev.merryweather.data.local.widget
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
