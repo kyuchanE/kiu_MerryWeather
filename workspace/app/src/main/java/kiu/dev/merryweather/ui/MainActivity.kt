@@ -8,7 +8,7 @@ import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
 import kiu.dev.merryweather.databinding.ActivityMainBinding
 
-//@AndroidEntryPoint
+@AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
     override val layoutId: Int = R.layout.activity_main

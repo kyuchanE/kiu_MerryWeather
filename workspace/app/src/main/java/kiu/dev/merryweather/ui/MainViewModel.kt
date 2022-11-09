@@ -10,10 +10,12 @@ import kiu.dev.merryweather.base.BaseViewModel
 import kiu.dev.merryweather.repository.WeatherRepository
 import javax.inject.Inject
 
+
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository
-) : BaseViewModel() {
+)  : BaseViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
     private val isLoading : LiveData<Boolean> get() = _isLoading
