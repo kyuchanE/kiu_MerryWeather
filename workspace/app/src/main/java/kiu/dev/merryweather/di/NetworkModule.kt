@@ -5,6 +5,7 @@ import android.content.Context
 import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.ihsanbal.logging.Level
 import com.ihsanbal.logging.LoggingInterceptor
+import com.localebro.okhttpprofiler.OkHttpProfilerInterceptor
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.BasicApi
 import okhttp3.JavaNetCookieJar
@@ -60,6 +61,9 @@ object NetworkModule {
             okHttpClientBuilder
                 .addInterceptor(httpLoggingInterceptor)
                 .addNetworkInterceptor(StethoInterceptor()) // Stetho 로그
+
+            okHttpClientBuilder
+                .addInterceptor(OkHttpProfilerInterceptor()) // OkhttpProfile 로그
         }
 
         okHttpClientBuilder.build()
