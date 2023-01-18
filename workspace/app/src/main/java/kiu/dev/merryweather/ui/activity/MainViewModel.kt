@@ -46,6 +46,10 @@ class MainViewModel @Inject constructor(
         MID
     }
 
+    // TODO chan 위젯 ID 관련 로직 필요
+
+    // TODO chan 단기/초단기/중기 데이터
+
     /**
      * 기상청 단기 예보 정보 (1일 8회) + 끝나고 초단기 예보 조회
      * @param ServiceKey  API KEY

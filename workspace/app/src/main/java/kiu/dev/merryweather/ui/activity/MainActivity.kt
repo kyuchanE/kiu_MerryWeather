@@ -21,12 +21,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // TODO chan MainActivity 로직 정리 필요 -> WeatherFragment
+
+        // TODO chan Main에서 필요한 로직은 무엇?
+
+        initUI()
         initViewModel()
         reqWeatherNow(
             C.WeatherData.Location.Seoul["nx"] ?: "",
             C.WeatherData.Location.Seoul["ny"] ?: ""
         )
 
+    }
+
+    /**
+     * init UI
+     */
+    private fun initUI() {
+        // TODO chan Fragment생성 및 ViewPager swipe 막기
     }
 
     /**

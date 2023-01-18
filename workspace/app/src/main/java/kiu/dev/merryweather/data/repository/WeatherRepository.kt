@@ -18,7 +18,6 @@ import javax.inject.Inject
 class WeatherRepository @Inject constructor(
     private val baseApi: BasicApi,
     private val weatherNowDao: WeatherNowDao
-
 ) {
 
     /**
