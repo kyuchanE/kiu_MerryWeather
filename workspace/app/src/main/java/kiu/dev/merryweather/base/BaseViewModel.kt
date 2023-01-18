@@ -11,7 +11,7 @@ open class BaseViewModel: ViewModel() {
     fun addDisposable(disposable: Disposable) = compositeDisposable.add(disposable)
 
     override fun onCleared() {
-        compositeDisposable.clear()
         super.onCleared()
+        compositeDisposable.clear()
     }
 }

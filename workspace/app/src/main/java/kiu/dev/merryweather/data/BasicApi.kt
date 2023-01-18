@@ -1,4 +1,4 @@
-package kiu.dev.merryweather.model
+package kiu.dev.merryweather.data
 
 import com.google.gson.JsonObject
 import io.reactivex.Flowable

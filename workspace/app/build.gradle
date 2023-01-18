@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "kiu.dev.merryweather"
         minSdk 23
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -127,8 +127,25 @@ dependencies {
     // LiveData
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
     // activity-ktx & fragment-ktx
-    implementation "androidx.activity:activity-ktx:1.4.0"
-    implementation "androidx.fragment:fragment-ktx:1.4.1"
+    implementation "androidx.activity:activity-ktx:1.6.1"
+    implementation "androidx.fragment:fragment-ktx:1.5.4"
+
+    // room
+    implementation "androidx.room:room-runtime:2.4.3"
+    implementation "androidx.room:room-ktx:2.4.3"
+    implementation "androidx.room:room-rxjava2:2.4.3"
+    implementation "androidx.room:room-rxjava3:2.4.3"
+    annotationProcessor "androidx.room:room-compiler:2.4.3"
+    kapt 'androidx.room:room-compiler:2.4.3'
+
+    // swiperefreshlayout
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
+    // glide
+    kapt 'com.github.bumptech.glide:compiler:4.14.2'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.14.2'
+    // glide transform
+    implementation 'jp.wasabeef:glide-transformations:4.3.0'
 }
 // Allow references to generated code
 kapt {

@@ -3,15 +3,24 @@ package kiu.dev.merryweather.utils
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.res.Resources
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestOptions
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import jp.wasabeef.glide.transformations.RoundedCornersTransformation
 import kiu.dev.merryweather.base.BaseActivity
+import kiu.dev.merryweather.di.GlideApp
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,18 +39,22 @@ fun <T : ViewDataBinding> Activity.bindView(layoutId: Int, parent: ViewGroup? = 
     return DataBindingUtil.inflate(layoutInflater, layoutId, parent, attachToRoot)
 }
 
-fun ViewDataBinding.setOnEvents(activity: BaseActivity<*, *>? = null) = root.setOnEvents(activity)
+fun <T : ViewDataBinding> Fragment.bindView(layoutId: Int, parent: ViewGroup? = null, attachToRoot: Boolean = false): T {
+    return DataBindingUtil.inflate(layoutInflater, layoutId, parent, attachToRoot)
+}
+
+fun ViewDataBinding.setOnEvents(activity: BaseActivity<*>? = null) = root.setOnEvents(activity)
 
 
 ////////////////////////////// View //////////////////////////////
 
 val View.isClick get() = tag == "click"
 
-val View.activity: BaseActivity<*, *>?
+val View.activity: BaseActivity<*>?
     get() {
         var ctx = context
         while (ctx is ContextWrapper) {
-            if (ctx is BaseActivity<*, *>) {
+            if (ctx is BaseActivity<*>) {
                 return ctx
             }
             ctx = ctx.baseContext
@@ -83,7 +96,7 @@ val ViewGroup.eventViews: List<View>
         return result
     }
 
-fun View.setOnEvents(baseActivity: BaseActivity<*, *>? = null): View {
+fun View.setOnEvents(baseActivity: BaseActivity<*>? = null): View {
     var views = mutableListOf<View>()
 
     if (this is ViewGroup) views.addAll(eventViews)
@@ -135,9 +148,6 @@ fun Long.changeDate(form: String): String {
     }
 }
 
-////////////////////////////// Double //////////////////////////////
-
-val Double.count get() = String.format(Locale.KOREA, "%,.2f", this)
 
 ////////////////////////////// JsonObject //////////////////////////////
 fun JsonObject?.asString(key: String, default: String = ""): String = try {
@@ -210,7 +220,7 @@ fun Any?.log(prefix: String = ""): Any? {
     return this
 }
 
-fun Any?.toast(handler: BaseActivity<*, *>) {
+fun Any?.toast(handler: BaseActivity<*>) {
     val str: String = when (this) {
         is Boolean, is Int, is Long, is Float, is Double -> this.toString()
         is Throwable -> this.toString()
@@ -219,3 +229,125 @@ fun Any?.toast(handler: BaseActivity<*, *>) {
     }
     Toast.makeText(handler, str, Toast.LENGTH_SHORT).show()
 }
+
+
+////////////////////////////// String //////////////////////////////
+
+fun String.getTimeNow(): String {
+    return try {
+        val date = Date(System.currentTimeMillis())
+        val simpleDateFormat = SimpleDateFormat(this)
+        simpleDateFormat.format(date)
+    } catch (e: Exception) {
+        L.e(e.message)
+        ""
+    }
+}
+
+fun String.getYesterday() : String {
+    return try {
+        val cal = Calendar.getInstance()
+        cal.time = Date()
+        cal.add(Calendar.DATE, -1)
+
+        val simpleDateFormat = SimpleDateFormat(this)
+        simpleDateFormat.format(cal.time)
+    } catch (e: Exception) {
+        L.e(e.message)
+        ""
+    }
+}
+
+////////////////////////////// ImageView //////////////////////////////
+
+fun ImageView.load(url: String): ImageView {
+    if (url.isNotEmpty()) {
+        GlideApp.with(context)
+            .load(url)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+    }
+    return this
+}
+
+fun ImageView.loadRound(url: String, round: Int): ImageView {
+    if (url.isNotEmpty()) {
+        GlideApp.with(context)
+            .load(url)
+            .transform(CenterCrop(), RoundedCorners(round.dp2px))
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+    }
+    return this
+}
+
+fun ImageView.loadRound(drawable: Drawable, round: Int): ImageView {
+    GlideApp.with(context)
+        .load(drawable)
+        .transform(CenterCrop(), RoundedCorners(round.dp2px))
+        .transition(DrawableTransitionOptions.withCrossFade())
+        .into(this)
+    return this
+}
+
+fun ImageView.loadRoundTop(url: String, round: Int): ImageView {
+    if (url.isNotEmpty()) {
+        GlideApp.with(context)
+            .load(url)
+            .transform(CenterCrop(), RoundedCornersTransformation(round.dp2px, 0, RoundedCornersTransformation.CornerType.TOP))
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+    }
+    return this
+}
+
+fun ImageView.loadCircle(url: String): ImageView {
+    if (url.isNotEmpty()) {
+        GlideApp.with(context)
+            .load(url)
+            .apply(RequestOptions().circleCrop())
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+    }
+    return this
+}
+
+fun ImageView.loadCircle(d: Drawable?): ImageView {
+    d?.let {
+        GlideApp.with(context)
+            .load(d)
+            .apply(RequestOptions().circleCrop())
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+    }
+    return this
+}
+
+////////////////////////////// Int //////////////////////////////
+
+val Int.digit get() = if (this < 10) "0${toString()}" else toString()
+val Int.px2dp get() = (this / Resources.getSystem().displayMetrics.density).toInt()
+val Int.dp2px get() = (this * Resources.getSystem().displayMetrics.density).toInt()
+val Int.boolean get() = this > 0
+val Int.count get() = String.format(Locale.KOREA, "%,d", this)
+
+////////////////////////////// Long //////////////////////////////
+
+val Long.count get() = String.format(Locale.KOREA, "%,d", this)
+
+////////////////////////////// Float //////////////////////////////
+
+val Float.px2dp get() = (this / Resources.getSystem().displayMetrics.density)
+val Float.dp2px get() = (this * Resources.getSystem().displayMetrics.density)
+
+////////////////////////////// Double //////////////////////////////
+
+val Double.count get() = String.format(Locale.KOREA, "%,.1f", this)
+//val Double.count get() = String.format(Locale.KOREA, "%,.2f", this)
+
+
+////////////////////////////// Boolean //////////////////////////////
+
+val Boolean.visible get() = if (this) View.VISIBLE else View.GONE
+val Boolean.bit get() = if (this) 1 else 0
+val Boolean.yn get() = if (this) "Y" else "N"
