@@ -1,5 +1,6 @@
 package kiu.dev.merryweather.ui.activity
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,6 +18,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override val layoutId: Int = R.layout.activity_main
     private val viewModel: MainViewModel by viewModels()
+    private val testViewModel: TestViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +33,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             C.WeatherData.Location.Seoul["nx"] ?: "",
             C.WeatherData.Location.Seoul["ny"] ?: ""
         )
+
+        binding.testVm = testViewModel
+        binding.vm = viewModel
+
+        testViewModel.getTestData()
+
+        binding.tv1.setOnClickListener {
+            startActivity(Intent(this, TestActivity::class.java))
+        }
 
     }
 
@@ -97,6 +108,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         with(viewModel){
 
             this.isLoading.observe(this@MainActivity) {
+                L.d("isLoading data : $it")
                 if (it){
                     showLoading()
                 } else {
@@ -106,6 +118,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
             this.weatherNowJson.observe(this@MainActivity) {
                 L.d("weatherNowJson data : $it")
+            }
+        }
+
+        with(testViewModel) {
+
+            this.isTestLoading.observe(this@MainActivity) {
+                L.d("isTestLoading data : $it")
             }
         }
     }

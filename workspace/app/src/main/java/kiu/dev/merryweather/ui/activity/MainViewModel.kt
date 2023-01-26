@@ -2,6 +2,7 @@ package kiu.dev.merryweather.ui.activity
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -12,6 +13,8 @@ import kiu.dev.merryweather.base.BaseViewModel
 import kiu.dev.merryweather.data.local.weather.now.WeatherNow
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.utils.L
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,10 +43,23 @@ class MainViewModel @Inject constructor(
     private val _localWeatherNowDataList = MutableLiveData<List<WeatherNow>>()
     val localWeatherNowDataList: LiveData<List<WeatherNow>> get() = _localWeatherNowDataList
 
+    private val _liveData =  MutableLiveData(10)
+    val liveData: LiveData<Int> = _liveData
+
     enum class WeatherType {
         NOW, // 단기 예보
         RIGHT_NOW, // 초단기 예보
         MID
+    }
+
+    fun changeLiveData() {
+        L.d("changeLiveData() ")
+        viewModelScope.launch {
+            repeat(10) {
+                _liveData.value = _liveData.value?.plus(1)
+                delay(1000L)
+            }
+        }
     }
 
     // TODO chan 위젯 ID 관련 로직 필요

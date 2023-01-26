@@ -69,6 +69,7 @@ abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = bind(layoutId)
+        // 뷰 모델을ㄹ LifeCycle에 종속시킴, LifeCycle 동안 옵저버 역할을 함
         binding.lifecycleOwner = this
         binding.setOnEvents()
 
