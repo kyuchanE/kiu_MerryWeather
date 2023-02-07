@@ -4,9 +4,14 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/drawable/ic_baseline_location_on_24.xml" value="0.357" />
-        <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/activity_main.xml" value="0.19166666666666668" />
+        <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/activity_test.xml" value="0.5536458333333333" />
+        <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/fragment_main.xml" value="0.638671875" />
+        <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/fragment_setting.xml" value="0.5526041666666667" />
         <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/fragment_weather.xml" value="0.414453125" />
+        <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/item_weather_time_line.xml" value="0.5441025641025641" />
+        <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/layout/widget_small.xml" value="0.5441025641025641" />
+        <entry key="..\:/WorkSpace/chan/kiu_MerryWeather/workspace/app/src/main/res/xml/appwidget_info.xml" value="0.5441025641025641" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.37604166666666666" />
         <entry key="app/src/main/res/layout/loading.xml" value="0.37604166666666666" />
       </map>

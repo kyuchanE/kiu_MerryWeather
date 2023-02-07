@@ -1,24 +1,33 @@
 package kiu.dev.merryweather.ui.activity
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
-import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.databinding.ActivityMainBinding
+import kiu.dev.merryweather.ui.adapter.MainPageAdapter
+import kiu.dev.merryweather.ui.fragment.MainFragment
+import kiu.dev.merryweather.ui.fragment.SettingFragment
+import kiu.dev.merryweather.ui.fragment.WeatherFragment
+import kiu.dev.merryweather.ui.viewmodel.MainViewModel
 import kiu.dev.merryweather.utils.L
-import kiu.dev.merryweather.utils.getTimeNow
-import kiu.dev.merryweather.utils.getYesterday
-import kiu.dev.merryweather.utils.toast
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override val layoutId: Int = R.layout.activity_main
     private val viewModel: MainViewModel by viewModels()
-    private val testViewModel: TestViewModel by viewModels()
+
+    private lateinit var pageAdapter: MainPageAdapter
+
+    /** init Fragment **/
+    private val fragmentList = mutableListOf(
+        WeatherFragment() as Fragment,
+        MainFragment() as Fragment,
+        SettingFragment() as Fragment
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,18 +38,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         initUI()
         initViewModel()
-        reqWeatherNow(
-            C.WeatherData.Location.Seoul["nx"] ?: "",
-            C.WeatherData.Location.Seoul["ny"] ?: ""
-        )
-
-        binding.testVm = testViewModel
-        binding.vm = viewModel
-
-        testViewModel.getTestData()
 
         binding.tv1.setOnClickListener {
-            startActivity(Intent(this, TestActivity::class.java))
+            binding.vpMain.setCurrentItem(0, false)
+        }
+
+        binding.tv2.setOnClickListener {
+            binding.vpMain.setCurrentItem(1, false)
+        }
+
+        binding.tv3.setOnClickListener {
+            binding.vpMain.setCurrentItem(2, false)
         }
 
     }
@@ -49,57 +57,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * init UI
      */
     private fun initUI() {
-        // TODO chan Fragment생성 및 ViewPager swipe 막기
-    }
-
-    /**
-     * 기상청 단기 예보 조회
-     * 발표 시각 : 0210, 0510, 0810, 1110, 1410, 1710, 2010, 2310
-     */
-    private fun reqWeatherNow(nx: String, ny: String) {
-        var nowDate: String = "YYYYMMdd".getTimeNow()
-        val nowHour: String = "HH".getTimeNow()
-        val nowTime: String = "HHmm".getTimeNow()
-        var baseTime = ""
-
-        kotlin.run {
-            C.WeatherData.WEATHER_NOW_GET_DATA_TIME.forEachIndexed { index, item ->
-                L.d("reqWeatherNow nowTime : ${nowTime.toInt()}  , item : ${item.toInt()}")
-                if (nowHour == "00" || nowHour == "01") {
-                    nowDate = "YYYYMMdd".getYesterday()
-                    baseTime = "2310"
-                    return@run
-                } else if (nowTime.toInt() in 200..210){
-                    nowDate = "YYYYMMdd".getYesterday()
-                    baseTime = "2310"
-                    return@run
-                } else if (item.toInt() > nowTime.toInt()) {
-                    baseTime = C.WeatherData.WEATHER_NOW_GET_DATA_TIME[index-1]
-                    L.d("@@@@@@@ baseTime : $baseTime")
-                    return@run
-                } else {
-                    baseTime = nowTime
-                }
-            }
+        pageAdapter = MainPageAdapter(this, fragmentList)
+        with(binding.vpMain) {
+            adapter = pageAdapter
+            isUserInputEnabled = false      // 스와이프 막기
         }
-
-        baseTime.toast(this)
-
-        // TODO chan nuoOfRows 줄여야함 / nx, ny 좌표 로직 추가 필요 
-        viewModel.getNowWeather(
-            mapOf(
-                "ServiceKey" to C.WeatherApi.API_KEY,
-                "dataType" to "JSON",
-                "pageNo" to "1",
-                "numOfRows" to "1000",
-                "base_date" to nowDate,
-                "base_time" to baseTime,
-                "nx" to nx,
-                "ny" to ny
-            )
-        )
     }
-
 
     /**
      * viewModel observe 세팅
@@ -121,12 +84,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        with(testViewModel) {
-
-            this.isTestLoading.observe(this@MainActivity) {
-                L.d("isTestLoading data : $it")
-            }
-        }
     }
 
 }

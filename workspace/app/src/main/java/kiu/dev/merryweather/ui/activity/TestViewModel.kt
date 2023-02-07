@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import kiu.dev.merryweather.base.BaseViewModel
 import kiu.dev.merryweather.utils.L
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class TestViewModel : BaseViewModel(){
@@ -15,6 +17,9 @@ class TestViewModel : BaseViewModel(){
 
     private val _liveData =  MutableLiveData(100)
     val liveData: LiveData<Int> = _liveData
+
+    private val _showToastEvent = MutableSharedFlow<String>()
+    val showToastEvent = _showToastEvent.asSharedFlow()
 
     fun getTestData() {
         _isTestLoading.postValue(true)
@@ -28,6 +33,12 @@ class TestViewModel : BaseViewModel(){
                 _liveData.value = _liveData.value?.plus(1)
                 delay(1000L)
             }
+        }
+    }
+
+    fun changeSharedFlow() {
+        viewModelScope.launch {
+            _showToastEvent.emit("ChangeSharedFlow!!")
         }
     }
 }

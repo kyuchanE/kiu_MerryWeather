@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.local.weather.now.WeatherDataBase
+import kiu.dev.merryweather.data.local.widget.WidgetIdDataBase
 import javax.inject.Singleton
 
 @Module
@@ -31,5 +32,22 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideWeatherNowDAO(dataBase: WeatherDataBase) = dataBase.weatherDAO()
+
+    @Provides
+    @Singleton
+    fun provideWidgetIdDatabase(
+        @ApplicationContext context: Context
+    ) =
+        Room.databaseBuilder(
+            context,
+            WidgetIdDataBase::class.java,
+            C.RoomTableName.WIDGET_ID
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideWidgetDAO(dataBase: WidgetIdDataBase) = dataBase.widgetIdDAO()
 
 }
