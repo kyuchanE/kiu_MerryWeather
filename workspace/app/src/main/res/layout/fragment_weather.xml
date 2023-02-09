@@ -19,6 +19,20 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/tv_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="30dp"
+                    tools:text="16"/>
+
+                <TextView
+                    android:id="@+id/tv_value_t"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="30dp"
+                    tools:text="16"/>
+
                 <!-- Start 현재 날씨/위치/온도 -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -92,6 +106,7 @@
                         android:id="@+id/iv_top_main"
                         android:layout_width="130dp"
                         android:layout_height="wrap_content"
+                        android:src="@drawable/img_test"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -106,7 +121,7 @@
                     android:id="@+id/rv_time_line"
                     android:layout_width="match_parent"
                     android:layout_height="150dp"
-                    android:paddingVertical="15dp"/>
+                    android:paddingVertical="15dp" />
                 <!-- End 시간별 날씨 예보 -->
 
             </LinearLayout>

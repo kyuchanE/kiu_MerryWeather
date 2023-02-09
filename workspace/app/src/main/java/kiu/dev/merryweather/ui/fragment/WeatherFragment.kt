@@ -5,6 +5,8 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.JsonElement
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
@@ -65,10 +67,17 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
         // TODO chan 위로 당겨 새로고침  ->  날씨 데이터 갱신 로직 필요 (항상 갱신이 아니라 내부 저장 데이터 날짜 확인하여)
 
         with(binding.srlContainer) {
-            this.setOnRefreshListener {
+            setOnRefreshListener {
                 reqWeatherData()
-                this.isRefreshing = false
+                isRefreshing = false
             }
+        }
+
+        with(binding.rvTimeLine) {
+            layoutManager = LinearLayoutManager(context).apply {
+                this.orientation = LinearLayoutManager.HORIZONTAL
+            }
+            adapter = weatherTimeLineAdapter.value
         }
     }
 
@@ -79,7 +88,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
         with(viewModel) {
 
-            isLoading.observe((activity as BaseActivity<*>)) {
+            isLoading.observe(viewLifecycleOwner) {
                 if (it){
                     (activity as BaseActivity<*>).showLoading()
                     return@observe
@@ -94,19 +103,19 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             weatherNowJson.observe((activity as BaseActivity<*>)) {
                 L.d("weatherNowJson observe : $it")
 
-//                var tpm = ""
-//                it.forEach {
-//                    if (it.asJsonObject.asString("category") == "T1H") {
-//                        tpm += "time : ${it.asJsonObject.asString("fcstTime")} value : ${it.asJsonObject.asString("fcstValue")} \n"
-//                    }
-//                }
-//
-//                binding.tvValue.text = tpm
+                var tpm = ""
+                it.forEach {
+                    if (it.asJsonObject.asString("category") == "T1H") {
+                        tpm += "time : ${it.asJsonObject.asString("fcstTime")} value : ${it.asJsonObject.asString("fcstValue")} \n"
+                    }
+                }
+
+                binding.tvValue.text = tpm
                 viewModel.saveLocalWeatherData(it, MainViewModel.WeatherType.NOW)
 
             }
 
-            weatherRightNowJson.observe((activity as BaseActivity<*>)) {
+            weatherRightNowJson.observe(viewLifecycleOwner) {
                 L.d("weatherRightNowJson observe : $it")
                 "Ultra Success".toast((activity as BaseActivity<*>))
 
@@ -120,6 +129,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                     }
                 }
                 val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
+                binding.tvValueT.text = t
 
                 // 위젯 데이터 갱신
                 this@WeatherFragment.widgetIdList.forEach {
@@ -138,11 +148,11 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
             }
 
-            weatherMidTaJson.observe((activity as BaseActivity<*>)) {
+            weatherMidTaJson.observe(viewLifecycleOwner) {
                 L.d("weatherWeekJson observe : $it")
             }
 
-            widgetIdList.observe((activity as BaseActivity<*>)) {
+            widgetIdList.observe(viewLifecycleOwner) {
                 L.d("widgetIdList observe : $it")
                 this@WeatherFragment.widgetIdList.clear()
                 it.forEach { widgetId ->
@@ -151,7 +161,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 L.d("fragment widgetIdList : ${this@WeatherFragment.widgetIdList}")
             }
 
-            localWeatherNowDataList.observe((activity as BaseActivity<*>)) {
+            localWeatherNowDataList.observe(viewLifecycleOwner) {
                 L.d("localWeatherData observe : $it")
                 this@WeatherFragment.localWeatherNowDataList.clear()
                 this@WeatherFragment.localWeatherNowDataList.addAll(it)
@@ -193,11 +203,11 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 weatherTimeLineAdapter.value.changeItemList(timeLineList)
             }
 
-            weatherMidTaJson.observe((activity as BaseActivity<*>)) {
+            weatherMidTaJson.observe(viewLifecycleOwner) {
                 L.d("weatherMidTaJson observe : $it")
             }
 
-            weatherMidFcstJson.observe((activity as BaseActivity<*>)) {
+            weatherMidFcstJson.observe(viewLifecycleOwner) {
                 L.d("weatherMidFcstJson observe : $it")
             }
         }
@@ -310,7 +320,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 "pageNo" to "1",
                 "numOfRows" to "10",
                 "regId" to "11B10101",
-                "tmFc" to "202211080600"
+                "tmFc" to "202302090600"
             )
         )
 

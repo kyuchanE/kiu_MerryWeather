@@ -6,9 +6,12 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import dagger.hilt.android.AndroidEntryPoint
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
+import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.ui.viewmodel.WidgetViewModel
 import kiu.dev.merryweather.utils.L
@@ -16,6 +19,7 @@ import kiu.dev.merryweather.utils.getTimeNow
 import kiu.dev.merryweather.utils.getYesterday
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class SmallAppWidgetProvider: AppWidgetProvider() {
     @Inject lateinit var widgetViewModel: WidgetViewModel
 
@@ -30,7 +34,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             t: String,
             s: String
         ) {
-            L.d("onUpdate updateAppwidget : $appWidgetId")
+            L.d("SmallAppWidgetProvider onUpdate updateAppwidget : $appWidgetId")
             val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                 .let { intent ->
                     // TODO chan PendingIntent flags Issue
@@ -64,7 +68,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
     override fun onEnabled(context: Context?) {
         super.onEnabled(context)
 
-        L.d("onEnabled")
+        L.d("SmallAppWidgetProvider onEnabled")
     }
 
     override fun onUpdate(
@@ -78,14 +82,16 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         mAppWidgetManager = appWidgetManager
         // Perform this loop procedure for each App Widget that belongs to this provider
         appWidgetIds?.forEach { appWidgetId ->
-            L.d("onUpdate appWidgetId: $appWidgetId")
+            L.d("SmallAppWidgetProvider onUpdate appWidgetId: $appWidgetId")
             context?.let {
                 // Save Widget ID
+                widgetViewModel.saveWidgetId(WidgetId(id = appWidgetId))
 
                 // Test setTime
                 val str = "YYYYMMdd HH:mm".getTimeNow()
 
                 // get WeatherData
+                getWeatherData()
             }
         }
     }
@@ -98,15 +104,16 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             if (action == "REFRESH_BTN_CLICK") {
                 context?.let { mContext->
                     val id = intent.getIntExtra("WIDGET_ID", 0)
-                    L.d("onReceive Widget ID : $id")
-
+                    L.d("SmallAppWidgetProvider onReceive Widget ID : $id")
+                    getWeatherData()
                 }
             }
         }
     }
 
     // Weather Api
-    private fun getWeatherData(id: Int) {
+    private fun getWeatherData() {
+        L.d("SmallAppWidgetProvider getWeatherData")
         var nx: String = C.WeatherData.Location.Seoul["nx"] ?: ""
         var ny: String = C.WeatherData.Location.Seoul["ny"] ?: ""
 
@@ -117,7 +124,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
 
         kotlin.run {
             C.WeatherData.WEATHER_NOW_GET_DATA_TIME.forEachIndexed { index, item ->
-                L.d("reqWeatherNow nowTime : ${nowTime.toInt()}  , item : ${item.toInt()}")
+                L.d("SmallAppWidgetProvider reqWeatherNow nowTime : ${nowTime.toInt()}  , item : ${item.toInt()}")
                 if (nowHour == "00" || nowHour == "01") {
                     nowDate = "YYYYMMdd".getYesterday()
                     baseTime = "2310"

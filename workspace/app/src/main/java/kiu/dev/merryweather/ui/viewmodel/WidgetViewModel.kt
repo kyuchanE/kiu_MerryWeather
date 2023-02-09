@@ -187,7 +187,22 @@ class WidgetViewModel @Inject constructor(
             .subscribe()
     }
 
+    /**
+     * 위젯 아이디 저장
+     */
+    fun saveWidgetId(vararg id: WidgetId) {
+        L.d("WidgetViewModel saveWidgetId")
+        widgetIdRepository.saveWidgetId(*id)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError { e ->
+
+            }
+            .subscribe()
+    }
+
     fun updateWeatherData(params: Map<String, Any?> = mapOf()) {
+        L.d("WidgetViewModel updateWeatherData")
         weathePasrams = params
         getWidgetId()
     }

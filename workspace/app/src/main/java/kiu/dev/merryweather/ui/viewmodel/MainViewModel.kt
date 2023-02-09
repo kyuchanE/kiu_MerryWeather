@@ -260,7 +260,7 @@ class MainViewModel @Inject constructor(
                             "pageNo" to "1",
                             "numOfRows" to "10",
                             "regId" to "11B00000",
-                            "tmFc" to "202211080600"
+                            "tmFc" to "202302090600"
                         )
                     )
                 }
