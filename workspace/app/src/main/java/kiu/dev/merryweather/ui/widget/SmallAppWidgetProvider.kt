@@ -23,6 +23,8 @@ import javax.inject.Inject
 class SmallAppWidgetProvider: AppWidgetProvider() {
     @Inject lateinit var widgetViewModel: WidgetViewModel
 
+    // TODO chan 위젯 삭제 시 로컬 위젯 아이디 리스트에서도 삭제
+
     companion object {
         var mContext: Context? = null
         var mAppWidgetManager: AppWidgetManager? = null
@@ -34,18 +36,21 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             t: String,
             s: String
         ) {
-            L.d("SmallAppWidgetProvider onUpdate updateAppwidget : $appWidgetId")
+            L.d("SmallAppWidgetProvider onUpdate updateAppwidget : $appWidgetId , t : $t , s : $s")
+            // Create an Intent to launch Activity
             val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                 .let { intent ->
                     // TODO chan PendingIntent flags Issue
                     // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE
                     // or FLAG_MUTABLE be specified when creating a PendingIntent.
-                    PendingIntent.getActivity(
-                        context,
-                        0,
-                        intent,
-                        PendingIntent.FLAG_IMMUTABLE
-                    )
+                    PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+                }
+
+            val refreshIntent: PendingIntent = Intent(context, SmallAppWidgetProvider::class.java)
+                .setAction("REFRESH_BTN_CLICK")
+                .putExtra("WIDGET_ID", appWidgetId)
+                .let { intent ->
+                    PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
                 }
 
             // Test setTime
@@ -58,7 +63,8 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 setTextViewText(R.id.tv_now, t)
                 setTextViewText(R.id.tv_widget_text, str)
                 setTextViewText(R.id.tv_sky, s)
-                setImageViewResource(R.id.iv_refresh, R.drawable.loading)
+                setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
+                setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
             }
 
             appWidgetManager?.updateAppWidget(appWidgetId, views)
@@ -92,6 +98,36 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
 
                 // get WeatherData
                 getWeatherData()
+
+                // Create an Intent to launch Activity
+                val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
+                    .let { intent ->
+                        // TODO chan PendingIntent flags Issue
+                        // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE
+                        // or FLAG_MUTABLE be specified when creating a PendingIntent.
+                        PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+                    }
+
+                val refreshIntent: PendingIntent = Intent(context, SmallAppWidgetProvider::class.java)
+                    .setAction("REFRESH_BTN_CLICK")
+                    .putExtra("WIDGET_ID", appWidgetId)
+                    .let { intent ->
+                        PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+                    }
+
+                // Get the layout for the App Widget and attach an on-click listener
+                // to the button
+                val views: RemoteViews = RemoteViews(
+                    it.packageName,
+                    R.layout.widget_small
+                ).apply {
+                    setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
+                    setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
+                    setTextViewText(R.id.tv_widget_text, str)
+                }
+
+                // Tell the AppWidgetManager to perform an update on the current app widget
+                appWidgetManager?.updateAppWidget(appWidgetId, views)
             }
         }
     }
@@ -118,31 +154,23 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         var ny: String = C.WeatherData.Location.Seoul["ny"] ?: ""
 
         var nowDate: String = "YYYYMMdd".getTimeNow()
-        val nowHour: String = "HH".getTimeNow()
-        val nowTime: String = "HHmm".getTimeNow()
-        var baseTime = ""
+        val nowTimeHour: Int = "HH".getTimeNow().toInt()
+        val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
-        kotlin.run {
-            C.WeatherData.WEATHER_NOW_GET_DATA_TIME.forEachIndexed { index, item ->
-                L.d("SmallAppWidgetProvider reqWeatherNow nowTime : ${nowTime.toInt()}  , item : ${item.toInt()}")
-                if (nowHour == "00" || nowHour == "01") {
-                    nowDate = "YYYYMMdd".getYesterday()
-                    baseTime = "2310"
-                    return@run
-                } else if (nowTime.toInt() in 200..210){
-                    nowDate = "YYYYMMdd".getYesterday()
-                    baseTime = "2310"
-                    return@run
-                } else if (item.toInt() > nowTime.toInt()) {
-                    baseTime = C.WeatherData.WEATHER_NOW_GET_DATA_TIME[index-1]
-                    L.d("@@@@@@@ baseTime : $baseTime")
-                    return@run
-                } else {
-                    baseTime = nowTime
-                }
+        L.d("reqWeatherUltraNow : $nowDate , hour : $nowTimeHour , minute : $nowTimeMinute")
+
+        val baseTime: String = if (nowTimeMinute >= 30){
+            String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
+        } else {
+            if (nowTimeHour == 0) {
+                nowDate = "YYYYMMdd".getYesterday()
+                "2330"
+            } else {
+                String.format("%02d", nowTimeHour-1) + "55"
             }
         }
 
+        L.d("SmallAppWidgetProvider getWeatherData $nowDate : $baseTime")
         widgetViewModel.updateWeatherData(
             mapOf(
                 "ServiceKey" to C.WeatherApi.API_KEY,

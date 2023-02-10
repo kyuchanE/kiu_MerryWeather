@@ -37,7 +37,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // TODO chan Main에서 필요한 로직은 무엇?
 
         initUI()
-        initViewModel()
 
         binding.tv1.setOnClickListener {
             binding.vpMain.setCurrentItem(0, false)
@@ -62,28 +61,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             adapter = pageAdapter
             isUserInputEnabled = false      // 스와이프 막기
         }
-    }
-
-    /**
-     * viewModel observe 세팅
-     */
-    private fun initViewModel() {
-        with(viewModel){
-
-            this.isLoading.observe(this@MainActivity) {
-                L.d("isLoading data : $it")
-                if (it){
-                    showLoading()
-                } else {
-                    hideLoading()
-                }
-            }
-
-            this.weatherNowJson.observe(this@MainActivity) {
-                L.d("weatherNowJson data : $it")
-            }
-        }
-
     }
 
 }

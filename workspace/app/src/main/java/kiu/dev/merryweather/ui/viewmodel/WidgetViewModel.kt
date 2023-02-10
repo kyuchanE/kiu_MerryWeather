@@ -145,7 +145,14 @@ class WidgetViewModel @Inject constructor(
 
                     L.d("itemsJsonArray $itemsJsonArray")
 
-                    val t = "${itemsJsonArray[0].asJsonObject.asString("fcstTime")} \n ${itemsJsonArray[0].asJsonObject.asString("fcstValue")}"
+                    val t1hList = arrayListOf<JsonElement>()
+                    itemsJsonArray.forEach {
+                        if (it.asJsonObject.asString("category") == "T1H") {
+                            t1hList.add(it.asJsonObject)
+                        }
+                    }
+
+                    val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
 
                     // TODO chan 데이터 가공하여 Widget Update
                     widgetList.forEach { id ->

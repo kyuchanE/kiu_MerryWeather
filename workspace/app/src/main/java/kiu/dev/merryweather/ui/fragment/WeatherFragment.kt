@@ -138,7 +138,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                             (activity as BaseActivity<*>).context,
                             AppWidgetManager.getInstance((activity as BaseActivity<*>).context),
                             it,
-                            t,
+                            t1hList[0].asJsonObject.asString("fcstValue"),
                             ""
                         )
                     }
