@@ -1,4 +1,4 @@
-package kiu.dev.merryweather.ui.viewmodel
+package kiu.dev.merryweather.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.JsonElement
@@ -212,6 +212,20 @@ class WidgetViewModel @Inject constructor(
         L.d("WidgetViewModel updateWeatherData")
         weathePasrams = params
         getWidgetId()
+    }
+
+    /**
+     * 위젯 아이디 삭제
+     */
+    fun deleteWidgetId(id: WidgetId) {
+        L.d("WidgetViewModel deleteWidgetId id : $id")
+        widgetIdRepository.deleteWidgetId(id)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError { e ->
+
+            }
+            .subscribe()
     }
 
     /**

@@ -47,4 +47,8 @@ object C {
         const val WEATHER_MID = "weather_mid"
     }
 
+    object WorkTag {
+        const val WIDGET_UPDATE = "widget_update_work"
+    }
+
 }

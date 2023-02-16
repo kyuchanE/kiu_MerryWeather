@@ -146,6 +146,9 @@ dependencies {
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.14.2'
     // glide transform
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
+
+    // WorkManager
+    implementation 'androidx.work:work-runtime-ktx:2.7.1'
 }
 // Allow references to generated code
 kapt {

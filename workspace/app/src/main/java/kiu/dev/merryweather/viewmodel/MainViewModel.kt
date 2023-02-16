@@ -1,4 +1,4 @@
-package kiu.dev.merryweather.ui.viewmodel
+package kiu.dev.merryweather.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

@@ -17,7 +17,7 @@ import kiu.dev.merryweather.data.local.weather.now.WeatherNow
 import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.databinding.FragmentWeatherBinding
 import kiu.dev.merryweather.ui.adapter.WeatherTimeLineAdapter
-import kiu.dev.merryweather.ui.viewmodel.MainViewModel
+import kiu.dev.merryweather.viewmodel.MainViewModel
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
 import kiu.dev.merryweather.utils.*
 

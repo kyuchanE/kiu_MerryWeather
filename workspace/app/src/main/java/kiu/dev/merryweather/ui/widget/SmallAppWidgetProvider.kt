@@ -13,7 +13,7 @@ import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.ui.activity.MainActivity
-import kiu.dev.merryweather.ui.viewmodel.WidgetViewModel
+import kiu.dev.merryweather.viewmodel.WidgetViewModel
 import kiu.dev.merryweather.utils.L
 import kiu.dev.merryweather.utils.getTimeNow
 import kiu.dev.merryweather.utils.getYesterday
@@ -73,8 +73,17 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
 
     override fun onEnabled(context: Context?) {
         super.onEnabled(context)
-
         L.d("SmallAppWidgetProvider onEnabled")
+    }
+
+    override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
+        super.onDeleted(context, appWidgetIds)
+        L.d("SmallAppWidgetProvider onDeleted appWidgetIds : $appWidgetIds")
+        appWidgetIds?.forEach { appWidgetId ->
+            // Delete Widget ID
+            widgetViewModel.deleteWidgetId(WidgetId(id = appWidgetId))
+        }
+
     }
 
     override fun onUpdate(
