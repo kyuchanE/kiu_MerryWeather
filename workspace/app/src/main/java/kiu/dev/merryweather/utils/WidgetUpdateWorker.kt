@@ -1,49 +1,108 @@
 package kiu.dev.merryweather.utils
 
 import android.content.Context
+import androidx.room.Room
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.BasicApi
 import kiu.dev.merryweather.data.local.widget.WidgetId
+import kiu.dev.merryweather.data.local.widget.WidgetIdDataBase
 import kiu.dev.merryweather.data.repository.WeatherRepository
+import kiu.dev.merryweather.data.repository.WidgetIdRepository
+import kiu.dev.merryweather.di.NetworkModule
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
 import javax.inject.Inject
 
-class WidgetUpdateWorker @Inject constructor(
-    context: Context,
-    params: WorkerParameters,
-    private val weatherRepository: WeatherRepository
+class WidgetUpdateWorker(
+    val context: Context,
+    params: WorkerParameters
 ): Worker(context, params) {
     private val widgetList = mutableListOf<WidgetId>()
     private var weathePasrams: Map<String, Any?> = mapOf()
 
     override fun doWork(): Result {
+        L.d("WidgetUpdateWorker doWork")
 
-        getRightNowWeather()
-
-        val outputData = workDataOf("public_key" to "android")
-        return Result.success(outputData)
+        getWidgetId()
+//        val outputData = workDataOf("public_key" to "android")
+        return Result.success()
     }
 
-    /**
-     * 기상청 초단기 예보 정보
-     * @param ServiceKey  API KEY
-     * @param dataType  JSON, XML
-     * @param pageNo  페이지 번호
-     * @param numOfRows  한 페이지 결과 수
-     * @param base_date  발표일자
-     * @param base_time  발표시각
-     * @param nx  예보지점 X 좌표
-     * @param ny  예보지점 Y 좌표
-     */
-    private fun getRightNowWeather() {
-        weatherRepository.getRightNow(
-            params = weathePasrams
-        ).subscribeOn(Schedulers.io())
+    private fun getWidgetId() {
+        Room.databaseBuilder(
+            context,
+            WidgetIdDataBase::class.java,
+            C.RoomTableName.WIDGET_ID
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+            .widgetIdDAO()
+            .getWidgetId()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError { e ->
+                L.d("e : $e")
+            }
+            .doOnNext { list ->
+                L.d("list : $list")
+                widgetList.clear()
+                list.forEach {
+                    widgetList.add(it)
+                }
+
+                getWeatherData()
+            }
+            .subscribe()
+    }
+
+    private fun getWeatherData() {
+        var nx: String = C.WeatherData.Location.Seoul["nx"] ?: ""
+        var ny: String = C.WeatherData.Location.Seoul["ny"] ?: ""
+
+        var nowDate: String = "YYYYMMdd".getTimeNow()
+        val nowTimeHour: Int = "HH".getTimeNow().toInt()
+        val nowTimeMinute: Int = "mm".getTimeNow().toInt()
+
+        L.d("reqWeatherUltraNow : $nowDate , hour : $nowTimeHour , minute : $nowTimeMinute")
+
+        val baseTime: String = if (nowTimeMinute >= 30){
+            String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
+        } else {
+            if (nowTimeHour == 0) {
+                nowDate = "YYYYMMdd".getYesterday()
+                "2330"
+            } else {
+                String.format("%02d", nowTimeHour-1) + "55"
+            }
+        }
+
+        NetworkModule.provideRetrofit(
+            NetworkModule.provideOkHttpClient(
+                NetworkModule.httpLoggingInterceptor()
+            )
+        ).create(BasicApi::class.java)
+            .getApi(
+                url = C.WeatherApi.WEATHER_RIGHT_NOW,
+                params = mapOf(
+                    "ServiceKey" to C.WeatherApi.API_KEY,
+                    "dataType" to "JSON",
+                    "pageNo" to "1",
+                    "numOfRows" to "50",
+                    "base_date" to nowDate,
+                    "base_time" to baseTime,
+                    "nx" to nx,
+                    "ny" to ny
+                )
+            ).subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError { e ->
                 L.d("e : $e")
@@ -73,7 +132,7 @@ class WidgetUpdateWorker @Inject constructor(
                         }
                     }
 
-                    val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
+                    val t = "Worker ${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
 
                     // TODO chan 데이터 가공하여 Widget Update
                     widgetList.forEach { id ->
@@ -83,14 +142,10 @@ class WidgetUpdateWorker @Inject constructor(
                             s = ""
                         )
                     }
-
                 }
             }
-            .doFinally{
-
-            }
+            .doFinally{ }
             .subscribe()
-
     }
 
 
@@ -115,12 +170,7 @@ class WidgetUpdateWorker @Inject constructor(
         if (resultCode == "00") {
             return true
         } else {
-            // TODO chan 통신 오류 발생
-//            _showError.postValue(
-//                data.asJsonObject("response")
-//                    .asJsonObject("header")
-//                    .asString("resultMsg")
-//            )
+
             return false
         }
     }

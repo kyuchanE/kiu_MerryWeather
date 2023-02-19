@@ -1,17 +1,16 @@
 package kiu.dev.merryweather.ui.activity
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
-import androidx.work.Constraints
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
+import androidx.work.*
 import dagger.hilt.android.AndroidEntryPoint
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
 import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.databinding.ActivityMainBinding
 import kiu.dev.merryweather.ui.adapter.MainPageAdapter
 import kiu.dev.merryweather.ui.fragment.MainFragment
@@ -92,7 +91,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             .setRequiresBatteryNotLow(true)     // 배터리 부족상태가 아닐 때만 작동
             .build()
         // work request
-        val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(2, TimeUnit.HOURS)
+        val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(20, TimeUnit.MINUTES)
             .addTag(C.WorkTag.WIDGET_UPDATE)
             .setConstraints(workConstraints)
             .build()
@@ -107,6 +106,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         widgetUpdateWorkInfo.observe(this) {
             L.d("widgetUpdateWorkInfo observe : $it")
         }
+    }
+
+    class TestWorker(
+        context: Context,
+        params: WorkerParameters,
+
+    ): Worker(context, params) {
+        private val widgetList = mutableListOf<WidgetId>()
+
+        override fun doWork(): Result {
+            L.d("TestWorker doWork")
+
+
+
+            return Result.success()
+        }
+
+
     }
 
 }
