@@ -91,7 +91,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             .setRequiresBatteryNotLow(true)     // 배터리 부족상태가 아닐 때만 작동
             .build()
         // work request
-        val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(20, TimeUnit.MINUTES)
+        val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(2, TimeUnit.HOURS)
             .addTag(C.WorkTag.WIDGET_UPDATE)
             .setConstraints(workConstraints)
             .build()
@@ -106,24 +106,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         widgetUpdateWorkInfo.observe(this) {
             L.d("widgetUpdateWorkInfo observe : $it")
         }
-    }
-
-    class TestWorker(
-        context: Context,
-        params: WorkerParameters,
-
-    ): Worker(context, params) {
-        private val widgetList = mutableListOf<WidgetId>()
-
-        override fun doWork(): Result {
-            L.d("TestWorker doWork")
-
-
-
-            return Result.success()
-        }
-
-
     }
 
 }

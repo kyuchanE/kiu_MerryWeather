@@ -27,7 +27,6 @@ class WidgetUpdateWorker(
     params: WorkerParameters
 ): Worker(context, params) {
     private val widgetList = mutableListOf<WidgetId>()
-    private var weathePasrams: Map<String, Any?> = mapOf()
 
     override fun doWork(): Result {
         L.d("WidgetUpdateWorker doWork")

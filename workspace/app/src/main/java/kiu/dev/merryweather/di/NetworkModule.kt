@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.ihsanbal.logging.Level
 import com.ihsanbal.logging.LoggingInterceptor
+import com.localebro.okhttpprofiler.OkHttpProfilerInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -63,6 +64,7 @@ object NetworkModule {
                     )
                 }
                 .addInterceptor(httpLoggingInterceptor)
+                .addInterceptor(OkHttpProfilerInterceptor())
                 .addNetworkInterceptor(StethoInterceptor()) // Stetho 로그
                 .build()
 

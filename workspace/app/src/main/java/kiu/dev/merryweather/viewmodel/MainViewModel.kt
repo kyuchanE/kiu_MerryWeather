@@ -235,7 +235,8 @@ class MainViewModel @Inject constructor(
      * @param tmFc  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
      */
     fun getWeatherMid(
-        params: Map<String, Any?> = mapOf()
+        params: Map<String, Any?> = mapOf(),
+        date: String
     ) {
         _isLoading.postValue(true)
         addDisposable(
@@ -260,7 +261,7 @@ class MainViewModel @Inject constructor(
                             "pageNo" to "1",
                             "numOfRows" to "10",
                             "regId" to "11B00000",
-                            "tmFc" to "202302090600"
+                            "tmFc" to date
                         )
                     )
                 }

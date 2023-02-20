@@ -311,8 +311,20 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
     /**
      * 기상청 중기 예보 조회
+     *  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
      */
     private fun reqWeatherMid() {
+        var nowDate: String = "YYYYMMdd".getTimeNow()
+        val nowTimeHour: Int = "HH".getTimeNow().toInt()
+
+        if (nowTimeHour > 18){
+            nowDate += "1800"
+        } else if (nowTimeHour > 6){
+            nowDate += "0600"
+        } else {
+            nowDate = "YYYYMMdd".getYesterday() + "1800"
+        }
+
         viewModel.getWeatherMid(
             mapOf(
                 "serviceKey" to C.WeatherApi.API_KEY,
@@ -320,8 +332,9 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 "pageNo" to "1",
                 "numOfRows" to "10",
                 "regId" to "11B10101",
-                "tmFc" to "202302090600"
-            )
+                "tmFc" to nowDate
+            ),
+            nowDate
         )
 
     }
