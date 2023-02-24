@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "196230780205",
+    "firebase_url": "https://aos-todorim-default-rtdb.firebaseio.com",
+    "project_id": "aos-todorim",
+    "storage_bucket": "aos-todorim.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:196230780205:android:a09878d0c75693b5cdefa4",
+        "android_client_info": {
+          "package_name": "kiu.dev.merryweather"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "196230780205-gif4ghjgigqbht1kmt5oip4u3q3sffpj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "kiu.dev.merryweather",
+            "certificate_hash": "a5862450689844598070dd7ad51b5a9fb03ef2cd"
+          }
+        },
+        {
+          "client_id": "196230780205-7hoqh60d3essbn2m6o9hushc44j2c3pc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxc_S-GlWrPEjY-69QC0IKTrZ9G813jyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "196230780205-7hoqh60d3essbn2m6o9hushc44j2c3pc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

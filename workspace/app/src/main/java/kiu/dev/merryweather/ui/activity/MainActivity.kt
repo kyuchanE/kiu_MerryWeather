@@ -6,6 +6,10 @@ import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.work.*
+import com.google.firebase.database.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
@@ -48,6 +52,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         initUI()
         widgetUpdateWorkInfo = workManager.getWorkInfosByTagLiveData(C.WorkTag.WIDGET_UPDATE)
         initObserve()
+        initFirebaseDatabase()
 
         binding.tv1.setOnClickListener {
             binding.vpMain.setCurrentItem(0, false)
@@ -106,6 +111,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         widgetUpdateWorkInfo.observe(this) {
             L.d("widgetUpdateWorkInfo observe : $it")
         }
+    }
+
+    private fun initFirebaseDatabase() {
+        L.d("initFirebaseDatabase ")
+        var database :FirebaseDatabase = Firebase.database("https://aos-todorim-default-rtdb.firebaseio.com/")
+        var myRef: DatabaseReference = database.getReference("version")
+
+        myRef.addValueEventListener(object: ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var value = snapshot.getValue<String>()
+                L.d("addValueEventListener value : $value")
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                L.d("onCancelled : $error")
+            }
+
+        })
     }
 
 }

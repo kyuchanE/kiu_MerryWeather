@@ -1,5 +1,6 @@
 package kiu.dev.merryweather.utils
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import androidx.room.Room
 import androidx.work.Worker
@@ -12,6 +13,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import kiu.dev.merryweather.base.BaseActivity
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.BasicApi
 import kiu.dev.merryweather.data.local.widget.WidgetId
@@ -136,6 +138,8 @@ class WidgetUpdateWorker(
                     // TODO chan 데이터 가공하여 Widget Update
                     widgetList.forEach { id ->
                         SmallAppWidgetProvider.updateAppWidget(
+                            context = context,
+                            appWidgetManager = AppWidgetManager.getInstance(context),
                             appWidgetId = id.id?:0,
                             t = t,
                             s = ""
