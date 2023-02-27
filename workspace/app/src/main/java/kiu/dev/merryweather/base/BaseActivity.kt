@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import com.google.gson.JsonObject
@@ -109,6 +110,18 @@ abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
 
         super.onDestroy()
         rxLifeCycle.onNext(ActivityEvent.DESTROY)
+    }
+
+    /**
+     * 상태바 숨김시 해당 높이값을 구해서 패딩 적용
+     */
+    open fun defaultPadding(container: ConstraintLayout) {
+        container.setPadding(
+            0,
+            statusBarHeight(),
+            0,
+            navigationHeight()
+        )
     }
 
     /**

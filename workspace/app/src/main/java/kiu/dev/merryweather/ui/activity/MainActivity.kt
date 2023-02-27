@@ -23,6 +23,7 @@ import kiu.dev.merryweather.ui.fragment.WeatherFragment
 import kiu.dev.merryweather.viewmodel.MainViewModel
 import kiu.dev.merryweather.utils.L
 import kiu.dev.merryweather.utils.WidgetUpdateWorker
+import kiu.dev.merryweather.utils.setStatusBarTransparent
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
@@ -70,13 +71,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onResume() {
         super.onResume()
-        initWork()
+
+        viewModel.getWidgetId()
+        viewModel.getLocalWeatherData()
     }
 
     /**
      * init UI
      */
     private fun initUI() {
+        setStatusBarTransparent()
+        defaultPadding(binding.clContainer)
+
         pageAdapter = MainPageAdapter(this, fragmentList)
         with(binding.vpMain) {
             adapter = pageAdapter
@@ -111,6 +117,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         widgetUpdateWorkInfo.observe(this) {
             L.d("widgetUpdateWorkInfo observe : $it")
         }
+
+        with(viewModel){
+            widgetIdList.observe(this@MainActivity) {
+                L.d("widgetIdList observe : $it")
+                if (it.size > 0) {
+                    initWork()
+                }
+            }
+        }
+
     }
 
     private fun initFirebaseDatabase() {

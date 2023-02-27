@@ -12,20 +12,19 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:hardwareAccelerated="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/img_mw"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/img_mw"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MerryWeather"
+        android:theme="@style/Theme.MerryWeather.Splash"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
         <activity
-            android:name=".ui.activity.TestActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activity.MainActivity"
-            android:exported="true">
+            android:name=".ui.activity.IntroActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MerryWeather.Splash" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -33,16 +32,27 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.activity.TestActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MerryWeather"/>
+
         <!-- Small Widget Provider -->
-        <receiver android:name=".ui.widget.SmallAppWidgetProvider"
+        <receiver
+            android:name=".ui.widget.SmallAppWidgetProvider"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/appwidget_info"/>
-        </receiver>
 
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/appwidget_info" />
+        </receiver>
     </application>
 
 </manifest>

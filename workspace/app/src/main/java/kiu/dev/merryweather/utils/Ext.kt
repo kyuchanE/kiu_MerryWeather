@@ -5,10 +5,13 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.*
+import androidx.core.view.WindowCompat
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
@@ -351,3 +354,44 @@ val Double.count get() = String.format(Locale.KOREA, "%,.1f", this)
 val Boolean.visible get() = if (this) View.VISIBLE else View.GONE
 val Boolean.bit get() = if (this) 1 else 0
 val Boolean.yn get() = if (this) "Y" else "N"
+
+
+
+////////////////////////////// Activity //////////////////////////////
+
+// status bar 투명 (숨김)
+fun Activity.setStatusBarTransparent() {
+    window.apply {
+        setFlags(
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
+    }
+    if(Build.VERSION.SDK_INT >= 30) {	// API 30 에 적용
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+    }
+}
+// status bar 되돌리기
+fun Activity.setStatusBarOrigin() {
+    window.apply {
+        clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+    }
+    if(Build.VERSION.SDK_INT >= 30) {	// API 30 에 적용
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+    }
+}
+
+// 상태바 높이 값
+fun Context.statusBarHeight(): Int {
+    val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+
+    return if (resourceId > 0) resources.getDimensionPixelSize(resourceId)
+    else 0
+}
+// 하단 네비게이션 높이 값
+fun Context.navigationHeight(): Int {
+    val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+
+    return if (resourceId > 0) resources.getDimensionPixelSize(resourceId)
+    else 0
+}

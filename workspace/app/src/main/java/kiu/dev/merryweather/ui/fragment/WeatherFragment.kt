@@ -55,9 +55,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
     override fun onResume() {
         super.onResume()
-
-        viewModel.getWidgetId()
-        viewModel.getLocalWeatherData()
     }
 
     /**
