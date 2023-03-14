@@ -23,8 +23,6 @@ import javax.inject.Inject
 class SmallAppWidgetProvider: AppWidgetProvider() {
     @Inject lateinit var widgetViewModel: WidgetViewModel
 
-    // TODO chan 위젯 삭제 시 로컬 위젯 아이디 리스트에서도 삭제
-
     companion object {
         var mContext: Context? = null
         var mAppWidgetManager: AppWidgetManager? = null

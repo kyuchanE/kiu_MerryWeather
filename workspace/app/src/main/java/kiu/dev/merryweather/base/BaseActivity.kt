@@ -2,6 +2,9 @@ package kiu.dev.merryweather.base
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -298,5 +301,11 @@ abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
      */
     fun onRxBtnEvents(v: View) {
         btnEventsSubject.onNext(v)
+    }
+
+    fun isIntentAvailable(intent: Intent): Boolean {
+        val list: List<ResolveInfo> = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        L.d("isIntentAvailable : ${list.isNotEmpty()} ")
+        return list.isNotEmpty()
     }
 }
