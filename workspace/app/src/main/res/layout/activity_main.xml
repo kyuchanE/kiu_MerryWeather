@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/cl_container"
+        android:background="@color/white"
         tools:context=".ui.activity.MainActivity">
 
         <androidx.viewpager2.widget.ViewPager2

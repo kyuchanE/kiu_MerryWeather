@@ -126,7 +126,9 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                     }
                 }
                 val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
-                binding.tvValueT.text = t
+
+                binding.tvValueT.text = t1hList[0].asJsonObject.asString("fcstTime")
+                binding.tvValue.text = t1hList[0].asJsonObject.asString("fcstValue")
 
                 // 위젯 데이터 갱신
                 this@WeatherFragment.widgetIdList.forEach {
@@ -164,11 +166,19 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 this@WeatherFragment.localWeatherNowDataList.addAll(it)
                 deleteBeforeLocalWeatherData(this@WeatherFragment.localWeatherNowDataList)
 
+                // API 날씨 데이터 가져오기 전 로컬 데이터로 미리 보여주기
+                if (this@WeatherFragment.localWeatherNowDataList.size > 0) {
+                    binding.tvValue.text = this@WeatherFragment.localWeatherNowDataList[0].tmp
+                }
+
                 // 시간별 날씨 정보
                 val timeLineList: MutableList<WeatherTimeLineData> = mutableListOf()
-                for (i in 0 until 20) {
-                    var skyDrawable: Drawable? = null
-                    if (this@WeatherFragment.localWeatherNowDataList.size > 0) {
+
+                if (this@WeatherFragment.localWeatherNowDataList.size > 0) {
+                    var cntDataList: Int =  this@WeatherFragment.localWeatherNowDataList.size
+                    if (this@WeatherFragment.localWeatherNowDataList.size > 20) cntDataList = 20
+                    for (i in 0 until cntDataList) {
+                        var skyDrawable: Drawable? = null
                         with(this@WeatherFragment.localWeatherNowDataList[i]) {
                             // TODO chan 날씨 아이콘 재정렬 필요
                             skyDrawable = when(this.sky) {
@@ -195,8 +205,8 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                             )
                         }
                     }
-
                 }
+
                 weatherTimeLineAdapter.value.changeItemList(timeLineList)
             }
 

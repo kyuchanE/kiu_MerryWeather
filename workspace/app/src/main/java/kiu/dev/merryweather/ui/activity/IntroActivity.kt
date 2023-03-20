@@ -45,7 +45,7 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
 
                 ObjectAnimator.ofPropertyValuesHolder(splashScreenView.iconView, animAlpha, animScaleX, animScaleY).run {
                     interpolator = AnticipateInterpolator()
-                    duration = 500L
+                    duration = 250L
                     doOnEnd { splashScreenView.remove() }
                     start()
                 }
@@ -55,7 +55,7 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
 
     private fun moveMain() {
         GlobalScope.launch {
-            delay(2500L)
+            delay(1200L)
             startActivity(
                 Intent(
                     this@IntroActivity,
