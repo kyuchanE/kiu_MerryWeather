@@ -2,14 +2,19 @@ package kiu.dev.merryweather.base
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import com.google.gson.JsonObject
 import com.trello.rxlifecycle3.android.ActivityEvent
+import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -27,7 +32,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompatActivity() {
+abstract class BaseActivity<B : ViewDataBinding> : AppCompatActivity() {
     companion object {
         /** 이벤트 주기 **/
         private const val THROTTLE_FIRST_DURATION = 500L
@@ -39,9 +44,6 @@ abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompat
 
     /** data binding layoutId **/
     abstract val layoutId: Int
-
-    /** viewModel **/
-    abstract val viewModel: VM
 
     /** Rx handler **/
     private val compositeDisposable = CompositeDisposable()
@@ -71,6 +73,7 @@ abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompat
         super.onCreate(savedInstanceState)
 
         binding = bind(layoutId)
+        // 뷰 모델을ㄹ LifeCycle에 종속시킴, LifeCycle 동안 옵저버 역할을 함
         binding.lifecycleOwner = this
         binding.setOnEvents()
 
@@ -110,6 +113,18 @@ abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompat
 
         super.onDestroy()
         rxLifeCycle.onNext(ActivityEvent.DESTROY)
+    }
+
+    /**
+     * 상태바 숨김시 해당 높이값을 구해서 패딩 적용
+     */
+    open fun defaultPadding(container: ConstraintLayout) {
+        container.setPadding(
+            0,
+            statusBarHeight(),
+            0,
+            navigationHeight()
+        )
     }
 
     /**
@@ -286,5 +301,11 @@ abstract class BaseActivity<B : ViewDataBinding, VM : BaseViewModel> : AppCompat
      */
     fun onRxBtnEvents(v: View) {
         btnEventsSubject.onNext(v)
+    }
+
+    fun isIntentAvailable(intent: Intent): Boolean {
+        val list: List<ResolveInfo> = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        L.d("isIntentAvailable : ${list.isNotEmpty()} ")
+        return list.isNotEmpty()
     }
 }
