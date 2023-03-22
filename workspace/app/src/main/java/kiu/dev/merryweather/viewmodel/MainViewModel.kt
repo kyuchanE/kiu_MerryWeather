@@ -119,6 +119,7 @@ class MainViewModel @Inject constructor(
                         }
                     }
 
+                    // TODO chan numOfRows 더 큰 값 필요
                     getRightNowWeather(
                         mapOf(
                             "ServiceKey" to C.WeatherApi.API_KEY,
@@ -246,9 +247,14 @@ class MainViewModel @Inject constructor(
                     L.d("e : $e")
                 }
                 .doOnNext { json ->
-                    L.d("json : $json")
+                    L.d("WEATHER_MID_TA json : $json")
                     if (isWeatherSuccess(json)){
                         _weatherMidTaJson.postValue(json)
+                        var item = json.asJsonObject("response")
+                            .asJsonObject("body")
+                            .asJsonObject("items")
+                            .asJsonArray("item")
+
                     }
                 }
                 .doFinally{
@@ -288,7 +294,7 @@ class MainViewModel @Inject constructor(
                     L.d("e : $e")
                 }
                 .doOnNext { json ->
-                    L.d("json : $json")
+                    L.d("WEATHER_MID_FCST json : $json")
                     if (isWeatherSuccess(json)){
                         _weatherMidFcstJson.postValue(json)
                     }
@@ -526,15 +532,14 @@ class MainViewModel @Inject constructor(
      * ROOM 로컬 지난 날씨 데이터 삭제
      */
     fun deleteBeforeLocalWeatherData(weatherNowDataList: MutableList<WeatherNow>) {
-        val today = "YYYYMMdd".getTimeNow().toLong()
+        val yesterday = "YYYYMMdd".getYesterday().toLong()
         val time = "HHmm".getTimeNow().toInt()
         val deleteDataList: MutableList<WeatherNow> = mutableListOf()
 
         weatherNowDataList.forEach {
-            // TODO chan 날짜 비교 후 시간 비교 추가하여 지난시간 데이터 삭제
-            if (it.time/10000 < today) {
+            if (it.time/10000 < yesterday) {
                 deleteDataList.add(it)
-            } else if (it.time/10000 == today &&
+            } else if (it.time/10000 == yesterday &&
                 it.time%10000 < time-100) {
                 deleteDataList.add(it)
             }

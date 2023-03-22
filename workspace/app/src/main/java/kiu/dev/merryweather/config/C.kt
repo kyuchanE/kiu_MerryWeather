@@ -11,7 +11,6 @@ object C {
     }
 
     object WeatherData {
-        // TODO chan 단기예보 시간
         val WEATHER_NOW_GET_DATA_TIME = listOf(
             "0210",
             "0510",

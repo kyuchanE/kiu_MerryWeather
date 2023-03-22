@@ -28,6 +28,8 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
 
         initUI()
         moveMain()
+
+        // TODO chan 인트로에서 날씨 데이터를 모두 받아 온 후 진입 시작 
     }
 
     private fun initUI() {

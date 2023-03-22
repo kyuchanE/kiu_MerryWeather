@@ -180,7 +180,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                     for (i in 0 until cntDataList) {
                         var skyDrawable: Drawable? = null
                         with(this@WeatherFragment.localWeatherNowDataList[i]) {
-                            // TODO chan 날씨 아이콘 재정렬 필요
                             skyDrawable = when(this.sky) {
                                 "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_sunny) }
                                 "2", "3" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy_a_lot) }
@@ -226,11 +225,11 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
      */
     private fun reqWeatherData()
     {
+        reqWeatherMid()
         reqWeatherNow(
             C.WeatherData.Location.Seoul["nx"] ?: "",
             C.WeatherData.Location.Seoul["ny"] ?: ""
         )
-        reqWeatherMid()
     }
 
     /**
@@ -302,6 +301,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
         baseTime.toast((activity as BaseActivity<*>))
 
+        // TODO chan numOfRows 더 큰 값을 변경 필요
         viewModel.getNowWeather(
             mapOf(
                 "ServiceKey" to C.WeatherApi.API_KEY,
@@ -331,7 +331,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
         } else {
             nowDate = "YYYYMMdd".getYesterday() + "1800"
         }
-
+        L.d("reqWeatherMid nowDate : $nowDate")
         viewModel.getWeatherMid(
             mapOf(
                 "serviceKey" to C.WeatherApi.API_KEY,

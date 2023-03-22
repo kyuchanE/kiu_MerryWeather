@@ -38,7 +38,6 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             // Create an Intent to launch Activity
             val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                 .let { intent ->
-                    // TODO chan PendingIntent flags Issue
                     // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE
                     // or FLAG_MUTABLE be specified when creating a PendingIntent.
                     PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -109,7 +108,6 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 // Create an Intent to launch Activity
                 val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                     .let { intent ->
-                        // TODO chan PendingIntent flags Issue
                         // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE
                         // or FLAG_MUTABLE be specified when creating a PendingIntent.
                         PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -178,6 +176,8 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         }
 
         L.d("SmallAppWidgetProvider getWeatherData $nowDate : $baseTime")
+
+        // TODO chan numOfRows 더 큰 값 필요
         widgetViewModel.updateWeatherData(
             mapOf(
                 "ServiceKey" to C.WeatherApi.API_KEY,
