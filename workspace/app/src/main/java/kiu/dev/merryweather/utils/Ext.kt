@@ -261,6 +261,20 @@ fun String.getYesterday() : String {
     }
 }
 
+fun String.getFutureDate(plusDate: Int): String {
+    return try {
+        val cal = Calendar.getInstance()
+        cal.time = Date()
+        cal.add(Calendar.DATE, plusDate)
+
+        val simpleDateFormat = SimpleDateFormat(this)
+        simpleDateFormat.format(cal.time)
+    } catch (e: Exception) {
+        L.e(e.message)
+        ""
+    }
+}
+
 ////////////////////////////// ImageView //////////////////////////////
 
 fun ImageView.load(url: String): ImageView {
