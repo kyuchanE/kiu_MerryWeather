@@ -29,7 +29,7 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
         initUI()
         moveMain()
 
-        // TODO chan 인트로에서 날씨 데이터를 모두 받아 온 후 진입 시작 
+        // TODO chan 인트로에서 날씨 데이터를 모두 받아 온 후 진입 시작  (중기 날짜를 미리 받아서 데이터 정렬해야하나..?)
     }
 
     private fun initUI() {
@@ -38,21 +38,21 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
         defaultPadding(binding.clContainer)
 
         // Splash Animation init
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            splashScreen.setOnExitAnimationListener { splashScreenView ->
-
-                val animScaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 2f)
-                val animScaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 2f)
-                val animAlpha = PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0f)
-
-                ObjectAnimator.ofPropertyValuesHolder(splashScreenView.iconView, animAlpha, animScaleX, animScaleY).run {
-                    interpolator = AnticipateInterpolator()
-                    duration = 250L
-                    doOnEnd { splashScreenView.remove() }
-                    start()
-                }
-            }
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            splashScreen.setOnExitAnimationListener { splashScreenView ->
+//
+//                val animScaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 2f)
+//                val animScaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 2f)
+//                val animAlpha = PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0f)
+//
+//                ObjectAnimator.ofPropertyValuesHolder(splashScreenView.iconView, animAlpha, animScaleX, animScaleY).run {
+//                    interpolator = AnticipateInterpolator()
+//                    duration = 250L
+//                    doOnEnd { splashScreenView.remove() }
+//                    start()
+//                }
+//            }
+//        }
     }
 
     private fun moveMain() {

@@ -41,8 +41,8 @@ class MainViewModel @Inject constructor(
     private val _weatherMidTaJson = MutableLiveData<JsonObject>()
     val weatherMidTaJson : LiveData<JsonObject> get() = _weatherMidTaJson
 
-    private val _weatherMidFcstJson = MutableLiveData<JsonElement>()
-    val weatherMidFcstJson : LiveData<JsonElement> get() = _weatherMidFcstJson
+    private val _weatherMidFcstJson = MutableLiveData<JsonObject>()
+    val weatherMidFcstJson : LiveData<JsonObject> get() = _weatherMidFcstJson
 
     private val _localWeatherNowDataList = MutableLiveData<List<WeatherNow>>()
     val localWeatherNowDataList: LiveData<List<WeatherNow>> get() = _localWeatherNowDataList
@@ -245,7 +245,7 @@ class MainViewModel @Inject constructor(
             ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError { e ->
-                    L.d("e : $e")
+                    L.d("e : ${e.message}")
                 }
                 .doOnNext { json ->
                     L.d("WEATHER_MID_TA json : $json")
@@ -257,8 +257,6 @@ class MainViewModel @Inject constructor(
                                 .asJsonArray("item")
                                 .get(0).asJsonObject
                             _weatherMidTaJson.postValue(item)
-
-                            saveLocalWeatherData(item, WeatherType.MID_TA)
                         }
                     } catch (e: Exception) {
 
@@ -303,15 +301,14 @@ class MainViewModel @Inject constructor(
                 .doOnNext { json ->
                     L.d("WEATHER_MID_FCST json : $json")
                     if (isWeatherSuccess(json)){
-                        _weatherMidFcstJson.postValue(json)
                         var item: JsonObject = json.asJsonObject("response")
                             .asJsonObject("body")
                             .asJsonObject("items")
                             .asJsonArray("item")
                             .get(0).asJsonObject
-                        _weatherMidTaJson.postValue(item)
+                        _weatherMidFcstJson.postValue(item)
 
-                        saveLocalWeatherData(item, WeatherType.MID_FCST)
+                        saveLocalWeatherData()
                     }
                 }
                 .doFinally{
@@ -371,98 +368,6 @@ class MainViewModel @Inject constructor(
     }
 
     /**
-     * 로컬에 중기 날씨 데이터 갱신
-     */
-    fun saveLocalMidWeatherData(dataList: MutableList<WeatherNow>, type: WeatherType) {
-        val saveLocalList = mutableListOf<WeatherNow>()
-        addDisposable(
-            weatherRepository.getLocalWeatherData()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError { e ->
-                    L.d("e : $e")
-                }
-                .doOnNext { list ->
-                    L.d("local weather list : $list")
-                    var weatherNow = WeatherNow()
-
-                    list.forEach { localList ->
-                        dataList.forEach { rightNowList ->
-                            if (localList.time == rightNowList.time){
-                                when(type) {
-                                    WeatherType.MID_TA -> {
-                                        weatherNow = WeatherNow(
-                                            time = localList.time,
-                                            location = localList.location,
-                                            pop = localList.pop,
-                                            pty = localList.pty,
-                                            tmn = rightNowList.tmn,
-                                            tmx = rightNowList.tmx,
-                                            sky = localList.sky,
-                                            tmp = localList.tmp,
-                                            pcp = localList.pcp
-                                        )
-                                    }
-                                    WeatherType.MID_FCST -> {
-                                        weatherNow = WeatherNow(
-                                            time = localList.time,
-                                            location = localList.location,
-                                            pop = rightNowList.pop,
-                                            pty = localList.pty,
-                                            tmn = localList.tmn,
-                                            tmx = localList.tmx,
-                                            sky = rightNowList.sky,
-                                            tmp = localList.tmp,
-                                            pcp = localList.pcp
-                                        )
-                                    }
-                                    else -> {}
-                                }
-                            } else {
-                                when(type) {
-                                    WeatherType.MID_TA -> {
-                                        weatherNow = WeatherNow(
-                                            time = rightNowList.time,
-                                            location = rightNowList.location,
-                                            pop = "",
-                                            pty = "",
-                                            tmn = rightNowList.tmn,
-                                            tmx = rightNowList.tmx,
-                                            sky = "",
-                                            tmp = "",
-                                            pcp = ""
-                                        )
-                                    }
-                                    WeatherType.MID_FCST -> {
-                                        weatherNow = WeatherNow(
-                                            time = rightNowList.time,
-                                            location = rightNowList.location,
-                                            pop = rightNowList.pop,
-                                            pty = "",
-                                            tmn = "",
-                                            tmx = "",
-                                            sky = rightNowList.sky,
-                                            tmp = "",
-                                            pcp = ""
-                                        )
-                                    }
-                                    else -> {}
-                                }
-                            }
-                            saveLocalList.add(weatherNow)
-                        }
-                    }
-                }
-                .doFinally {
-                    if (saveLocalList.size > 0) {
-                        saveLocalWeatherData(saveLocalList)
-                    }
-                }
-                .subscribe()
-        )
-    }
-
-    /**
      * 로컬에 초단기 날씨 데이터 갱신
      */
     fun saveLocalNowWeatherData(dataList: MutableList<WeatherNow>) {
@@ -510,30 +415,26 @@ class MainViewModel @Inject constructor(
     /**
      * ROOM 로컬 날씨 데이터 저장 (중기)
      */
-    fun saveLocalWeatherData(data: JsonObject, type: WeatherType) {
+    fun saveLocalWeatherData() {
         var weatherNowList = mutableListOf<WeatherNow>()
-
-        when(type) {
-            WeatherType.MID_TA -> {     // 중기 최고 최저
-                for (i in 3..10) {
-                    weatherNowList.add(WeatherNow(
-                        time = ("YYYYMMdd".getFutureDate(i) + "0000").toLong(),
-                        tmx = data.asString("taMax$i"),
-                        tmn = data.asString("taMin$i")
-                    ))
-                }
-            }
-            WeatherType.MID_FCST -> {   // 중기 날씨
-                weatherNowList.add(WeatherNow(
+        var midTaJson: JsonObject? = _weatherMidTaJson.value
+        var midFcstJson: JsonObject? = _weatherMidFcstJson.value
+        // TODO chan 중기 날씨 예보 AM/PM 나눠서 보여주기
+        //  -오전 오후 시간 값을 정하여 3일뒤 말고 기존 단기 데이터도 통일 (11시, 18시?)
+        for (i in 3..7) {
+            weatherNowList.add(
+                WeatherNow(
                     time = ("YYYYMMdd".getFutureDate(i) + "0000").toLong(),
-                    tmx = data.asString("taMax$i"),
-                    tmn = data.asString("taMin$i")
-                ))
-            }
-            else -> {}
+                    tmx = midTaJson?.asString("taMax$i")?:"",
+                    tmn = midTaJson?.asString("taMin$i")?:"",
+                    pop = midFcstJson?.asString("rnSt${i}Pm")?:"",
+                    pty = getPty(midFcstJson?.asString("wf${i}Pm")?:""),
+                    sky = getSky(midFcstJson?.asString("wf${i}Pm")?:"")
+                )
+            )
         }
-
-//        saveLocalMidWeatherData(weatherNowList, type)
+        L.d("saveLocalWeatherData 중기 : $weatherNowList")
+        saveLocalWeatherData(weatherNowList)
     }
 
     /**
@@ -573,7 +474,6 @@ class MainViewModel @Inject constructor(
                 data[0].asJsonObject.asString("nx") + "." +
                         data[0].asJsonObject.asString("ny")
 
-
             data.forEach { data ->
                 if (data.asJsonObject.asString("fcstDate") == timeData["fcstDate"] &&
                     data.asJsonObject.asString("fcstTime") == timeData["fcstTime"]) {
@@ -591,6 +491,8 @@ class MainViewModel @Inject constructor(
                                 pcp = data.asJsonObject.asString("fcstValue")
                             }
                         }
+
+                        // TODO chan 단기 값은 인트로에서 받은 값과 같이 사용해야 하기 때문에 수정 필요
                         WeatherType.NOW -> {            // 단기
                             if (data.asJsonObject.asString("category") == "PTY") {
                                 pty = data.asJsonObject.asString("fcstValue")
@@ -645,7 +547,6 @@ class MainViewModel @Inject constructor(
                         .subscribe()
                 )
             }
-
             else -> {}
         }
 
@@ -658,7 +559,7 @@ class MainViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError { e ->
-                    L.d("e : $e")
+                    L.e("e : $e")
                 }
                 .subscribe()
         )
@@ -682,7 +583,6 @@ class MainViewModel @Inject constructor(
         }
 
         L.d("deleteLocalWeatherDataList : $deleteDataList")
-
         if(deleteDataList.size > 0) {
             addDisposable(
                 weatherRepository.deleteLocalWeatherData(*deleteDataList.toTypedArray())
@@ -698,5 +598,35 @@ class MainViewModel @Inject constructor(
             )
         }
 
+    }
+
+    fun getPty(data: String): String {
+        return if (data.contains("맑음")) {
+            "0"
+        } else if(data.contains("비")) {
+            "1"
+        } else if(data.contains("비/눈")) {
+            "2"
+        }  else if(data.contains("눈")) {
+            "3"
+        } else if(data.contains("소나기")) {
+            "4"
+        } else if(data.contains("빗방울")) {
+            "5"
+        } else {
+            "0"
+        }
+    }
+
+    fun getSky(data: String): String {
+        return if(data.contains("맑음")) {
+            "1"
+        } else if(data.contains("구름")) {
+            "3"
+        } else if(data.contains("흐림") || data.contains("흐리고")) {
+            "4"
+        } else {
+            "1"
+        }
     }
 }
