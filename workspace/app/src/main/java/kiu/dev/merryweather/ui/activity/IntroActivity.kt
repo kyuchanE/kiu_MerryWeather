@@ -1,25 +1,27 @@
 package kiu.dev.merryweather.ui.activity
 
-import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
+import android.appwidget.AppWidgetManager
 import android.content.Intent
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
-import android.view.animation.AnticipateInterpolator
-import androidx.core.animation.doOnEnd
+import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.google.gson.JsonElement
+import dagger.hilt.android.AndroidEntryPoint
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.base.BaseActivity
+import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.databinding.ActivityIntroBinding
-import kiu.dev.merryweather.utils.setStatusBarTransparent
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
+import kiu.dev.merryweather.utils.*
+import kiu.dev.merryweather.viewmodel.MainViewModel
 
+@AndroidEntryPoint
 class IntroActivity : BaseActivity<ActivityIntroBinding>() {
+
     override val layoutId: Int = R.layout.activity_intro
+    private val viewModel: MainViewModel by viewModels()
+    private val widgetIdList = mutableListOf<WidgetId>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Splash init
@@ -27,13 +29,14 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
         super.onCreate(savedInstanceState)
 
         initUI()
-        moveMain()
+        startAnim()
+        initViewModel()
+        reqWeatherData()
 
-        // TODO chan 인트로에서 날씨 데이터를 모두 받아 온 후 진입 시작  (중기 날짜를 미리 받아서 데이터 정렬해야하나..?)
+        // TODO chan 미세먼지 정보 필요
     }
 
     private fun initUI() {
-
         setStatusBarTransparent()
         defaultPadding(binding.clContainer)
 
@@ -55,24 +58,145 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
 //        }
     }
 
-    private fun moveMain() {
-        GlobalScope.launch {
-            delay(1200L)
-            startActivity(
-                Intent(
-                    this@IntroActivity,
-                    MainActivity::class.java
-                ).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
-            )
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-            finishIntro()
-        }
+    private fun startAnim() {
+
     }
 
-    private fun finishIntro() {
+    private fun moveMain() {
+        startActivity(
+            Intent(
+                this@IntroActivity,
+                MainActivity::class.java
+            ).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
+        )
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
         finish()
     }
+
+    /**
+     * 날씨 데이터 요청
+     */
+    private fun reqWeatherData()
+    {
+        reqWeatherMid()
+        reqWeatherNow(
+            C.WeatherData.Location.Seoul["nx"] ?: "",
+            C.WeatherData.Location.Seoul["ny"] ?: ""
+        )
+    }
+
+    /**
+     * 기상청 단기 예보 조회
+     * 발표 시각 : 0210, 0510, 0810, 1110, 1410, 1710, 2010, 2310
+     */
+    private fun reqWeatherNow(nx: String, ny: String) {
+        var nowDate: String = "YYYYMMdd".getTimeNow()
+        val nowHour: String = "HH".getTimeNow()
+        val nowTime: String = "HHmm".getTimeNow()
+        var baseTime = ""
+
+        kotlin.run {
+            C.WeatherData.WEATHER_NOW_GET_DATA_TIME.forEachIndexed { index, item ->
+                L.d("reqWeatherNow nowTime : ${nowTime.toInt()}  , item : ${item.toInt()}")
+                if (nowHour == "00" || nowHour == "01") {
+                    nowDate = "YYYYMMdd".getYesterday()
+                    baseTime = "2310"
+                    return@run
+                } else if (nowTime.toInt() in 200..210){
+                    nowDate = "YYYYMMdd".getYesterday()
+                    baseTime = "2310"
+                    return@run
+                } else if (item.toInt() > nowTime.toInt()) {
+                    baseTime = C.WeatherData.WEATHER_NOW_GET_DATA_TIME[index-1]
+                    L.d("@@@@@@@ baseTime : $baseTime")
+                    return@run
+                } else {
+                    baseTime = nowTime
+                }
+            }
+        }
+
+        // TODO chan numOfRows 더 큰 값을 변경 필요
+        viewModel.getNowWeather(
+            mapOf(
+                "ServiceKey" to C.WeatherApi.API_KEY,
+                "dataType" to "JSON",
+                "pageNo" to "1",
+                "numOfRows" to "1000",
+                "base_date" to nowDate,
+                "base_time" to baseTime,
+                "nx" to nx,
+                "ny" to ny
+            )
+        )
+    }
+
+    /**
+     * 기상청 중기 예보 조회
+     *  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
+     */
+    private fun reqWeatherMid() {
+        var nowDate: String = "YYYYMMdd".getTimeNow()
+        val nowTimeHour: Int = "HH".getTimeNow().toInt()
+
+        if (nowTimeHour > 18){
+            nowDate += "1800"
+        } else if (nowTimeHour > 6){
+            nowDate += "0600"
+        } else {
+            nowDate = "YYYYMMdd".getYesterday() + "1800"
+        }
+        L.d("reqWeatherMid nowDate : $nowDate")
+        viewModel.getWeatherMid(
+            mapOf(
+                "serviceKey" to C.WeatherApi.API_KEY,
+                "dataType" to "JSON",
+                "pageNo" to "1",
+                "numOfRows" to "10",
+                "regId" to "11B10101",
+                "tmFc" to nowDate
+            ),
+            nowDate
+        )
+
+    }
+
+    /**
+     * viewModel observe 세팅
+     */
+    private fun initViewModel() {
+
+        with(viewModel) {
+
+            isInitFinish.observe(this@IntroActivity) {
+                L.d("isIniFinish : $it")
+                if (it) moveMain()
+            }
+
+            showError.observe(this@IntroActivity) {
+                L.d("showError : $it")
+            }
+
+            weatherNowJson.observe(this@IntroActivity) {
+                viewModel.saveLocalWeatherData(it, MainViewModel.WeatherType.NOW)
+            }
+
+            weatherRightNowJson.observe(this@IntroActivity) {
+                viewModel.saveLocalWeatherData(it, MainViewModel.WeatherType.RIGHT_NOW)
+            }
+
+            weatherMidTaJson.observe(this@IntroActivity) {
+                L.d("weatherMidTaJson : $it")
+            }
+
+            weatherMidFcstJson.observe(this@IntroActivity) {
+                L.d("weatherMidFcstJson : $it")
+            }
+        }
+
+    }
+
 
 }

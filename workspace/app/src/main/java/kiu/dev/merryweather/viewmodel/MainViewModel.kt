@@ -2,8 +2,6 @@ package kiu.dev.merryweather.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,8 +14,6 @@ import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.utils.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,6 +24,9 @@ class MainViewModel @Inject constructor(
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading : LiveData<Boolean> get() = _isLoading
+
+    private val _isInitFinish = MutableLiveData<Boolean>()
+    val isInitFinish: LiveData<Boolean> get() = _isInitFinish
 
     private val _showError = MutableLiveData<String>()
     val showError : LiveData<String> get() = _showError
@@ -49,6 +48,9 @@ class MainViewModel @Inject constructor(
 
     private val _widgetIdList = MutableLiveData<List<WidgetId>>()
     val widgetIdList : LiveData<List<WidgetId>> get() = _widgetIdList
+
+    private var isInitMidFinish: Boolean = false;
+    private var isInitNowFinish: Boolean = false;
 
     enum class WeatherType {
         NOW, // 단기 예보
@@ -184,6 +186,8 @@ class MainViewModel @Inject constructor(
                 }
                 .doFinally{
                     _isLoading.postValue(false)
+                    isInitNowFinish = true
+                    _isInitFinish.postValue(isInitMidFinish&&isInitNowFinish)
                 }
                 .subscribe()
         )
@@ -313,6 +317,8 @@ class MainViewModel @Inject constructor(
                 }
                 .doFinally{
                     _isLoading.postValue(false)
+                    isInitMidFinish = true
+                    _isInitFinish.postValue(isInitNowFinish&&isInitMidFinish)
                 }
                 .subscribe()
         )

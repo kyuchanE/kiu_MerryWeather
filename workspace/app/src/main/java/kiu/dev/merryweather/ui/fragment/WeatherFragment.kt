@@ -42,14 +42,15 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     }
 
     // TODO chan Fragment 활용법
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         initViewModel()
         initUI()
-        reqWeatherData()
+        reqWeatherNow(
+            C.WeatherData.Location.Seoul["nx"] ?: "",
+            C.WeatherData.Location.Seoul["ny"] ?: ""
+        )
 
     }
 
@@ -62,7 +63,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
      */
     private fun initUI() {
         // TODO chan 위로 당겨 새로고침  ->  날씨 데이터 갱신 로직 필요 (항상 갱신이 아니라 내부 저장 데이터 날짜 확인하여)
-
+        // TODO chan 오전 오후 표기 필요
         with(binding.srlContainer) {
             setOnRefreshListener {
                 reqWeatherData()
@@ -76,6 +77,12 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             }
             adapter = weatherTimeLineAdapter.value
         }
+
+        with(binding.rvWeekLine) {
+            layoutManager = LinearLayoutManager(context).apply {
+                this.orientation = LinearLayoutManager.VERTICAL
+            }
+        }
     }
 
     /**
@@ -84,7 +91,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     private fun initViewModel() {
 
         with(viewModel) {
-
             isLoading.observe(viewLifecycleOwner) {
                 if (it){
                     (activity as BaseActivity<*>).showLoading()
@@ -145,10 +151,6 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
                 viewModel.saveLocalWeatherData(it, MainViewModel.WeatherType.RIGHT_NOW)
 
-            }
-
-            weatherMidTaJson.observe(viewLifecycleOwner) {
-                L.d("weatherWeekJson observe : $it")
             }
 
             widgetIdList.observe(viewLifecycleOwner) {

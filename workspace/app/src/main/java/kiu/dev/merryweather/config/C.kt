@@ -25,6 +25,7 @@ object C {
         object Location {
             const val LOCATION_SEOUL = "seoul"
 
+            // TODO chan NOW / MID 지역 코드가 다름
             val Seoul = mapOf(
                 "nx" to "60",
                 "ny" to "127"
