@@ -80,10 +80,33 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
      */
     private fun reqWeatherData()
     {
+        reqWeatherNowTodayAll(
+            C.WeatherData.Location.Seoul["nx"] ?: "",
+            C.WeatherData.Location.Seoul["ny"] ?: ""
+        )
         reqWeatherMid()
         reqWeatherNow(
             C.WeatherData.Location.Seoul["nx"] ?: "",
             C.WeatherData.Location.Seoul["ny"] ?: ""
+        )
+    }
+
+    private fun reqWeatherNowTodayAll(nx: String, ny: String) {
+        var nowDate: String = "yyyyMMdd".getTimeNow()
+        var baseTime = "0210"
+
+        // TODO chan numOfRows 더 큰 값을 변경 필요
+        viewModel.getNowWeather(
+            mapOf(
+                "ServiceKey" to C.WeatherApi.API_KEY,
+                "dataType" to "JSON",
+                "pageNo" to "1",
+                "numOfRows" to "1000",
+                "base_date" to nowDate,
+                "base_time" to baseTime,
+                "nx" to nx,
+                "ny" to ny
+            ), false
         )
     }
 
@@ -92,7 +115,7 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
      * 발표 시각 : 0210, 0510, 0810, 1110, 1410, 1710, 2010, 2310
      */
     private fun reqWeatherNow(nx: String, ny: String) {
-        var nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "yyyyMMdd".getTimeNow()
         val nowHour: String = "HH".getTimeNow()
         val nowTime: String = "HHmm".getTimeNow()
         var baseTime = ""
@@ -101,11 +124,11 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
             C.WeatherData.WEATHER_NOW_GET_DATA_TIME.forEachIndexed { index, item ->
                 L.d("reqWeatherNow nowTime : ${nowTime.toInt()}  , item : ${item.toInt()}")
                 if (nowHour == "00" || nowHour == "01") {
-                    nowDate = "YYYYMMdd".getYesterday()
+                    nowDate = "yyyyMMdd".getYesterday()
                     baseTime = "2310"
                     return@run
                 } else if (nowTime.toInt() in 200..210){
-                    nowDate = "YYYYMMdd".getYesterday()
+                    nowDate = "yyyyMMdd".getYesterday()
                     baseTime = "2310"
                     return@run
                 } else if (item.toInt() > nowTime.toInt()) {
@@ -138,7 +161,7 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
      *  발표시각 (일 2회 06:00 18:00 생성 YYYYMMDD0600(1800))
      */
     private fun reqWeatherMid() {
-        var nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "yyyyMMdd".getTimeNow()
         val nowTimeHour: Int = "HH".getTimeNow().toInt()
 
         if (nowTimeHour > 18){
@@ -146,7 +169,7 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
         } else if (nowTimeHour > 6){
             nowDate += "0600"
         } else {
-            nowDate = "YYYYMMdd".getYesterday() + "1800"
+            nowDate = "yyyyMMdd".getYesterday() + "1800"
         }
         L.d("reqWeatherMid nowDate : $nowDate")
         viewModel.getWeatherMid(

@@ -9,6 +9,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.base.BaseViewModel
 import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.local.weather.mid.WeatherMid
 import kiu.dev.merryweather.data.local.weather.now.WeatherNow
 import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
@@ -46,6 +47,9 @@ class MainViewModel @Inject constructor(
     private val _localWeatherNowDataList = MutableLiveData<List<WeatherNow>>()
     val localWeatherNowDataList: LiveData<List<WeatherNow>> get() = _localWeatherNowDataList
 
+    private val _localMidWeatherDataList = MutableLiveData<List<WeatherMid>>()
+    val localMidWeatherDataList: LiveData<List<WeatherMid>> get() = _localMidWeatherDataList
+
     private val _widgetIdList = MutableLiveData<List<WidgetId>>()
     val widgetIdList : LiveData<List<WidgetId>> get() = _widgetIdList
 
@@ -73,7 +77,8 @@ class MainViewModel @Inject constructor(
      * @param ny  예보지점 Y 좌표
      */
     fun getNowWeather(
-        params: Map<String, Any?> = mapOf()
+        params: Map<String, Any?> = mapOf(),
+        callRightNowData: Boolean = true
     ) {
         _isLoading.postValue(true)
 
@@ -105,36 +110,41 @@ class MainViewModel @Inject constructor(
                     _weatherNowJson.postValue(itemsJsonArray)
                 }
                 .doFinally{
-                    var nowDate: String = "YYYYMMdd".getTimeNow()
-                    val nowTimeHour: Int = "HH".getTimeNow().toInt()
-                    val nowTimeMinute: Int = "mm".getTimeNow().toInt()
+                    if (callRightNowData) {
+                        var nowDate: String = "yyyyMMdd".getTimeNow()
+                        val nowTimeHour: Int = "HH".getTimeNow().toInt()
+                        val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
-                    L.d("reqWeatherRightNow : $nowDate , hour : $nowTimeHour , minute : $nowTimeMinute")
+                        L.d("reqWeatherRightNow : $nowDate , hour : $nowTimeHour , minute : $nowTimeMinute")
 
-                    val baseTime: String = if (nowTimeMinute >= 30){
-                        String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
-                    } else {
-                        if (nowTimeHour == 0) {
-                            nowDate = "YYYYMMdd".getYesterday()
-                            "2330"
+                        val baseTime: String = if (nowTimeMinute >= 30){
+                            String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
                         } else {
-                            String.format("%02d", nowTimeHour-1) + "55"
+                            if (nowTimeHour == 0) {
+                                nowDate = "yyyyMMdd".getYesterday()
+                                "2330"
+                            } else {
+                                String.format("%02d", nowTimeHour-1) + "55"
+                            }
                         }
+
+                        // TODO chan numOfRows 더 큰 값 필요
+                        getRightNowWeather(
+                            mapOf(
+                                "ServiceKey" to C.WeatherApi.API_KEY,
+                                "dataType" to "JSON",
+                                "pageNo" to "1",
+                                "numOfRows" to "50",
+                                "base_date" to nowDate,
+                                "base_time" to baseTime,
+                                "nx" to params["nx"],
+                                "ny" to params["ny"]
+                            )
+                        )
+                    } else {
+
                     }
 
-                    // TODO chan numOfRows 더 큰 값 필요
-                    getRightNowWeather(
-                        mapOf(
-                            "ServiceKey" to C.WeatherApi.API_KEY,
-                            "dataType" to "JSON",
-                            "pageNo" to "1",
-                            "numOfRows" to "50",
-                            "base_date" to nowDate,
-                            "base_time" to baseTime,
-                            "nx" to params["nx"],
-                            "ny" to params["ny"]
-                        )
-                    )
                 }
                 .subscribe()
         )
@@ -312,7 +322,7 @@ class MainViewModel @Inject constructor(
                             .get(0).asJsonObject
                         _weatherMidFcstJson.postValue(item)
 
-                        saveLocalWeatherData()
+                        saveLocalMidWeatherData(_weatherMidTaJson.value, item)
                     }
                 }
                 .doFinally{
@@ -374,6 +384,25 @@ class MainViewModel @Inject constructor(
     }
 
     /**
+     * 로컬에 저장된 중기 날씨 데이터 조회
+     */
+    fun getLocalMidWeatherData() {
+        addDisposable(
+            weatherRepository.getLocalMidWeatherData()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { list ->
+                    L.d("local mid weather list : $list")
+                    _localMidWeatherDataList.postValue(list)
+                }
+                .subscribe()
+        )
+    }
+
+    /**
      * 로컬에 초단기 날씨 데이터 갱신
      */
     fun saveLocalNowWeatherData(dataList: MutableList<WeatherNow>) {
@@ -418,29 +447,31 @@ class MainViewModel @Inject constructor(
         )
     }
 
-    /**
+    /**c
      * ROOM 로컬 날씨 데이터 저장 (중기)
      */
-    fun saveLocalWeatherData() {
-        var weatherNowList = mutableListOf<WeatherNow>()
-        var midTaJson: JsonObject? = _weatherMidTaJson.value
-        var midFcstJson: JsonObject? = _weatherMidFcstJson.value
-        // TODO chan 중기 날씨 예보 AM/PM 나눠서 보여주기
-        //  -오전 오후 시간 값을 정하여 3일뒤 말고 기존 단기 데이터도 통일 (11시, 18시?)
+    fun saveLocalMidWeatherData(midTaJson: JsonObject?, midFcstJson: JsonObject?) {
+        var weatherMidList = mutableListOf<WeatherMid>()
+        var midTaJson: JsonObject? = midTaJson
+        var midFcstJson: JsonObject? = midFcstJson
+
         for (i in 3..7) {
-            weatherNowList.add(
-                WeatherNow(
-                    time = ("YYYYMMdd".getFutureDate(i) + "0000").toLong(),
+            weatherMidList.add(
+                WeatherMid(
+                    date = ("yyyyMMdd".getFutureDate(i)).toLong(),
                     tmx = midTaJson?.asString("taMax$i")?:"",
                     tmn = midTaJson?.asString("taMin$i")?:"",
-                    pop = midFcstJson?.asString("rnSt${i}Pm")?:"",
-                    pty = getPty(midFcstJson?.asString("wf${i}Pm")?:""),
-                    sky = getSky(midFcstJson?.asString("wf${i}Pm")?:"")
+                    amPop= midFcstJson?.asString("rnSt${i}Am")?:"",
+                    pmPop = midFcstJson?.asString("rnSt${i}Pm")?:"",
+                    amPty = getPty(midFcstJson?.asString("wf${i}Am")?:""),
+                    pmPty = getPty(midFcstJson?.asString("wf${i}Pm")?:""),
+                    amSky = getSky(midFcstJson?.asString("wf${i}Am")?:""),
+                    pmSky = getSky(midFcstJson?.asString("wf${i}Pm")?:"")
                 )
             )
         }
-        L.d("saveLocalWeatherData 중기 : $weatherNowList")
-        saveLocalWeatherData(weatherNowList)
+        L.d("saveLocalWeatherData 중기 : $weatherMidList")
+        saveLocalMidWeatherData(weatherMidList)
     }
 
     /**
@@ -575,7 +606,8 @@ class MainViewModel @Inject constructor(
      * ROOM 로컬 지난 날씨 데이터 삭제
      */
     fun deleteBeforeLocalWeatherData(weatherNowDataList: MutableList<WeatherNow>) {
-        val yesterday = "YYYYMMdd".getYesterday().toLong()
+        // TODO chan 기준 변경 필요 어제 말고 그제  (어제 날씨 데이터 사용 여부 필요)
+        val yesterday = "yyyyMMdd".getYesterday().toLong()
         val time = "HHmm".getTimeNow().toInt()
         val deleteDataList: MutableList<WeatherNow> = mutableListOf()
 
@@ -604,6 +636,22 @@ class MainViewModel @Inject constructor(
             )
         }
 
+    }
+
+    fun saveLocalMidWeatherData(data: MutableList<WeatherMid>) {
+        addDisposable(
+            weatherRepository.saveLocalMidWeatherData(*data.toTypedArray())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.e("e : $e")
+                }
+                .subscribe()
+        )
+    }
+
+    fun deleteBeforeLocalMidWeatherData(weatherNowDataList: MutableList<WeatherMid>) {
+        // TODO chan ROOM 로컬 지난 중기 날씨 데이터 삭제
     }
 
     fun getPty(data: String): String {

@@ -51,7 +51,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 }
 
             // Test setTime
-            val str = "YYYYMMdd HH:mm".getTimeNow()
+            val str = "yyyyMMdd HH:mm".getTimeNow()
 
             val views: RemoteViews = RemoteViews(
                 context?.packageName,
@@ -100,7 +100,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 widgetViewModel.saveWidgetId(WidgetId(id = appWidgetId))
 
                 // Test setTime
-                val str = "YYYYMMdd HH:mm".getTimeNow()
+                val str = "yyyyMMdd HH:mm".getTimeNow()
 
                 // get WeatherData
                 getWeatherData()
@@ -158,7 +158,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         var nx: String = C.WeatherData.Location.Seoul["nx"] ?: ""
         var ny: String = C.WeatherData.Location.Seoul["ny"] ?: ""
 
-        var nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "yyyyMMdd".getTimeNow()
         val nowTimeHour: Int = "HH".getTimeNow().toInt()
         val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
@@ -168,7 +168,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
         } else {
             if (nowTimeHour == 0) {
-                nowDate = "YYYYMMdd".getYesterday()
+                nowDate = "yyyyMMdd".getYesterday()
                 "2330"
             } else {
                 String.format("%02d", nowTimeHour-1) + "55"

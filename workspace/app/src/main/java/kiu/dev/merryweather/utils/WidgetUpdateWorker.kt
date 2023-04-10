@@ -69,7 +69,7 @@ class WidgetUpdateWorker(
         var nx: String = C.WeatherData.Location.Seoul["nx"] ?: ""
         var ny: String = C.WeatherData.Location.Seoul["ny"] ?: ""
 
-        var nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "yyyyMMdd".getTimeNow()
         val nowTimeHour: Int = "HH".getTimeNow().toInt()
         val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
@@ -79,7 +79,7 @@ class WidgetUpdateWorker(
             String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
         } else {
             if (nowTimeHour == 0) {
-                nowDate = "YYYYMMdd".getYesterday()
+                nowDate = "yyyyMMdd".getYesterday()
                 "2330"
             } else {
                 String.format("%02d", nowTimeHour-1) + "55"

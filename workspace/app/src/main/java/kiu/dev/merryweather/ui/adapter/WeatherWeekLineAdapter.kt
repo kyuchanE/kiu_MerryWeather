@@ -7,12 +7,13 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.data.local.WeatherTimeLineData
+import kiu.dev.merryweather.data.local.WeatherWeekLineData
 import kiu.dev.merryweather.databinding.ItemWeatherWeekLineBinding
 
 class WeatherWeekLineAdapter(
-    private val weatherItems: MutableList<WeatherTimeLineData>
+    private val weatherItems: MutableList<WeatherWeekLineData>
 ): RecyclerView.Adapter<WeatherWeekLineAdapter.WeatherWeekLineViewHolder>() {
-    private val itemList: MutableList<WeatherTimeLineData> = mutableListOf()
+    private val itemList: MutableList<WeatherWeekLineData> = mutableListOf()
 
     init {
         itemList.addAll(weatherItems)
@@ -43,7 +44,7 @@ class WeatherWeekLineAdapter(
 
     override fun getItemCount(): Int = itemList.size
 
-    fun changeItemList(weatherItems: MutableList<WeatherTimeLineData>) {
+    fun changeItemList(weatherItems: MutableList<WeatherWeekLineData>) {
         itemList.clear()
         itemList.addAll(weatherItems)
         notifyDataSetChanged()

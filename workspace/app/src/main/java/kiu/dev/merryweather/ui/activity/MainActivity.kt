@@ -74,6 +74,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         viewModel.getWidgetId()
         viewModel.getLocalWeatherData()
+        viewModel.getLocalMidWeatherData()
     }
 
     /**

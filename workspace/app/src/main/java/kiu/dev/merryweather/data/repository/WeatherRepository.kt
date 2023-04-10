@@ -8,7 +8,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.BasicApi
+import kiu.dev.merryweather.data.local.dao.WeatherMidDao
 import kiu.dev.merryweather.data.local.dao.WeatherNowDao
+import kiu.dev.merryweather.data.local.weather.mid.WeatherMid
 import kiu.dev.merryweather.data.local.weather.now.WeatherNow
 import kiu.dev.merryweather.utils.asJsonArray
 import kiu.dev.merryweather.utils.asJsonObject
@@ -17,7 +19,8 @@ import javax.inject.Inject
 
 class WeatherRepository @Inject constructor(
     private val baseApi: BasicApi,
-    private val weatherNowDao: WeatherNowDao
+    private val weatherNowDao: WeatherNowDao,
+    private val weatherMidDao: WeatherMidDao
 ) {
 
     /**
@@ -46,6 +49,8 @@ class WeatherRepository @Inject constructor(
             .filter(::filterNowWeather)
             .observeOn(AndroidSchedulers.mainThread())
     }
+
+    // TODO chan Collection 함수 정리 필요!
 
     /**
      * 기상청 초단기 예보 정보
@@ -133,6 +138,32 @@ class WeatherRepository @Inject constructor(
      */
     fun deleteLocalWeatherData(vararg weatherNow: WeatherNow): Completable =
         weatherNowDao.deleteWeatherData(*weatherNow)
+
+
+    /**
+     * 로컬에 저장된 중기 날씨 데이터 조회
+     */
+    fun getLocalMidWeatherData(): Flowable<List<WeatherMid>> =
+        weatherMidDao.getWeatherData()
+
+    /**
+     * 로컬에 중기 날씨 데이터 저장
+     */
+    fun saveLocalMidWeatherData(vararg weatherNow: WeatherMid): Completable =
+        weatherMidDao.insertWeatherData(*weatherNow)
+
+    /**
+     * 로컬 날씨 데이터 삭제
+     */
+    fun deleteLocalMidWeatherData(data: WeatherMid): Completable =
+        weatherMidDao.deleteWeatherData(data)
+
+
+    /**
+     * 로컬 날씨 데이터 삭제
+     */
+    fun deleteLocalMidWeatherData(vararg weatherNow: WeatherMid): Completable =
+        weatherMidDao.deleteWeatherData(*weatherNow)
 
     /**
      *
