@@ -86,6 +86,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             layoutManager = LinearLayoutManager(context).apply {
                 this.orientation = LinearLayoutManager.VERTICAL
             }
+            adapter = weatherWeekLineAdapter.value
         }
     }
 
@@ -124,21 +125,42 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
             weatherRightNowJson.observe(viewLifecycleOwner) {
                 L.d("weatherRightNowJson observe : $it")
-                "Ultra Success".toast((activity as BaseActivity<*>))
 
-                val t1hList = arrayListOf<JsonElement>()
+                var time = ""
+                var tmp = ""
+                var pty = ""
+                var sky = ""
 
-                var tpm = ""
-                it.forEach {
-                    if (it.asJsonObject.asString("category") == "T1H") {
-                        t1hList.add(it.asJsonObject)
-                        tpm += "time : ${it.asJsonObject.asString("fcstTime")} value : ${it.asJsonObject.asString("fcstValue")} \n"
+                kotlin.run {
+                    it.forEach {
+                        if (it.asJsonObject.asString("category") == "T1H") {
+                            tmp = it.asJsonObject.asString("fcstValue")
+                            time = it.asJsonObject.asString("fcstTime")
+                            return@run
+                        }
                     }
                 }
-                val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
 
-                binding.tvValueT.text = t1hList[0].asJsonObject.asString("fcstTime")
-                binding.tvValue.text = t1hList[0].asJsonObject.asString("fcstValue")
+                kotlin.run {
+                    it.forEach {
+                        if (it.asJsonObject.asString("category") == "SKY") {
+                            sky = it.asJsonObject.asString("fcstValue")
+                            return@run
+                        }
+                    }
+                }
+
+                kotlin.run {
+                    it.forEach {
+                        if (it.asJsonObject.asString("category") == "PTY") {
+                            pty = it.asJsonObject.asString("fcstValue")
+                            return@run
+                        }
+                    }
+                }
+
+                binding.tvValueT.text = time
+                binding.tvValue.text ="기온 ${tmp}° , 하늘 $sky, 강수 $pty"
 
                 // 위젯 데이터 갱신
                 this@WeatherFragment.widgetIdList.forEach {
@@ -147,8 +169,9 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                             (activity as BaseActivity<*>).context,
                             AppWidgetManager.getInstance((activity as BaseActivity<*>).context),
                             it,
-                            t1hList[0].asJsonObject.asString("fcstValue"),
-                            ""
+                            tmp,
+                            sky,
+                            pty
                         )
                     }
                 }
@@ -173,20 +196,33 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 deleteBeforeLocalWeatherData(this@WeatherFragment.localWeatherNowDataList)
 
                 // API 날씨 데이터 가져오기 전 로컬 데이터로 미리 보여주기
-                // TODO chan 로직 변경 해야함!!
-                if (this@WeatherFragment.localWeatherNowDataList.size > 0) {
-                    binding.tvValue.text = this@WeatherFragment.localWeatherNowDataList[0].tmp
+                val timeNow = "yyyyMMddHH".getTimeNow() + "00"
+                var listIndex = 0
+
+                kotlin.run {
+                    this@WeatherFragment.localWeatherNowDataList.forEachIndexed { index, weatherNow ->
+                        if (timeNow.toLong() == weatherNow.time) {
+                            binding.tvValue.text = weatherNow.tmp
+                            binding.tvValueT.text = weatherNow.time.toString()
+                            listIndex = index
+                            return@run
+                        }
+                    }
                 }
 
                 // 시간별 날씨 정보
                 val timeLineList: MutableList<WeatherTimeLineData> = mutableListOf()
 
                 if (this@WeatherFragment.localWeatherNowDataList.size > 0) {
-                    var cntDataList: Int =  this@WeatherFragment.localWeatherNowDataList.size
-                    if (this@WeatherFragment.localWeatherNowDataList.size > 20) cntDataList = 20
-                    for (i in 0 until cntDataList) {
+                    var pickItemsCount = this@WeatherFragment.localWeatherNowDataList.size - listIndex
+                    var cntDataList: Int = pickItemsCount
+                    if (pickItemsCount > 20) cntDataList = 20 + listIndex
+                    for (i in listIndex until cntDataList) {
                         var skyDrawable: Drawable? = null
                         with(this@WeatherFragment.localWeatherNowDataList[i]) {
+                            L.d("timeLine : ${this.time.toString()}")
+
+                            // TODO chan 날씨 아이콘 로직 수정 필요
                             skyDrawable = when(this.sky) {
                                 "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_sunny) }
                                 "2", "3" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy_a_lot) }
@@ -222,12 +258,16 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 val weekDateList = "yyyyMMdd".getDateList()
 
                 var isContainToday = false
-                localMidDataList.forEach { weatherMidData ->
-                    if (weekDateList[0] == weatherMidData.date.toString())
+                var todayIndex = 0
+                localMidDataList.forEachIndexed { index, weatherMidData ->
+                    if (weekDateList[0] == weatherMidData.date.toString()){
                         isContainToday = true
+                        todayIndex = index
+                    }
                 }
 
                 if (!isContainToday){
+                    // 오늘 주간 날씨 데이터가 없는 경우
                     var saveMidDataList = mutableListOf<WeatherMid>()
                     weekDateList.forEach { weekDate ->
                         var midData = WeatherMid(date = weekDate.toLong())
@@ -255,13 +295,63 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                     }
                     viewModel.saveLocalMidWeatherData(saveMidDataList)
                 } else {
+                    // 노출 가능한 주간 날씨 데이터가 모두 있는 경우
+                    for (i in todayIndex until localMidDataList.size - 1) {
+                        with(localMidDataList[i]) {
+                            var strDayOfWeek = if (i == todayIndex) "오늘" else this.date.toString().getDayOfWeek()
+                            var amSky: Drawable? = null
+                            var pmSky: Drawable? = null
+                            var selectPop = ""
+
+                            // TODO chan 날씨 아이콘 로직 수정 필요
+                            amSky = when(this.amSky) {
+                                "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_sunny) }
+                                "2", "3" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy_a_lot) }
+                                "4" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy) }
+                                else -> { null }
+                            }
+
+                            amSky = when(this.amPty) {
+                                "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                                "5" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                                else -> amSky
+                            }
+
+                            pmSky = when(this.pmSky) {
+                                "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_sunny) }
+                                "2", "3" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy_a_lot) }
+                                "4" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_cloudy) }
+                                else -> { null }
+                            }
+
+                            pmSky = when(this.pmPty) {
+                                "1" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                                "5" -> { this@WeatherFragment.baseActivity.getDrawable(R.drawable.icon_rainny) }
+                                else -> pmSky
+                            }
+
+                            val amPop = this.amPop.ifEmpty { "0" }
+                            val pmPop = this.pmPop.ifEmpty { "0" }
+
+                            selectPop =  if (amPop.toLong() > pmPop.toLong()) this.amPop
+                            else this.pmPop
+
+                            weekLineList.add(
+                                WeatherWeekLineData(
+                                    dayOfWeek = strDayOfWeek,
+                                    amDrawable = amSky,
+                                    pmDrawable = pmSky,
+                                    tmn = this.tmn,
+                                    tmx = this.tmx,
+                                    pop = selectPop
+                                )
+                            )
+                        }
+                    }
+                    weatherWeekLineAdapter.value.changeItemList(weekLineList)
 
                 }
 
-//                weekDateList.forEach { date ->
-//                    this@WeatherFragment.localWeatherNowDataList
-//                        .filter { it.time.toString().substring(0,8) == date }
-//                }
             }
 
             weatherMidTaJson.observe(viewLifecycleOwner) {

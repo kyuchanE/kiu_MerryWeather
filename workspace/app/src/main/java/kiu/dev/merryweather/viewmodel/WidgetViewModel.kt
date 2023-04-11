@@ -145,21 +145,44 @@ class WidgetViewModel @Inject constructor(
 
                     L.d("itemsJsonArray $itemsJsonArray")
 
-                    val t1hList = arrayListOf<JsonElement>()
-                    itemsJsonArray.forEach {
-                        if (it.asJsonObject.asString("category") == "T1H") {
-                            t1hList.add(it.asJsonObject)
+                    var tmp = ""
+                    var pty = ""
+                    var sky = ""
+
+                    kotlin.run {
+                        itemsJsonArray.forEach {
+                            if (it.asJsonObject.asString("category") == "T1H") {
+                                tmp = it.asJsonObject.asString("fcstValue")
+                                return@run
+                            }
                         }
                     }
 
-                    val t = "${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
+                    kotlin.run {
+                        itemsJsonArray.forEach {
+                            if (it.asJsonObject.asString("category") == "SKY") {
+                                sky = it.asJsonObject.asString("fcstValue")
+                                return@run
+                            }
+                        }
+                    }
+
+                    kotlin.run {
+                        itemsJsonArray.forEach {
+                            if (it.asJsonObject.asString("category") == "PTY") {
+                                pty = it.asJsonObject.asString("fcstValue")
+                                return@run
+                            }
+                        }
+                    }
 
                     // TODO chan 데이터 가공하여 Widget Update
                     widgetList.forEach { id ->
                         SmallAppWidgetProvider.updateAppWidget(
                             appWidgetId = id.id?:0,
-                            t = t,
-                            s = ""
+                            tmp = tmp,
+                            sky = sky,
+                            pty = pty
                         )
                     }
 

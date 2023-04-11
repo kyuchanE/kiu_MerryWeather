@@ -31,10 +31,10 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             context: Context? = mContext,
             appWidgetManager: AppWidgetManager? = mAppWidgetManager,
             appWidgetId: Int,
-            t: String,
-            s: String
+            tmp: String,
+            sky: String,
+            pty: String
         ) {
-            L.d("SmallAppWidgetProvider onUpdate updateAppwidget : $appWidgetId , t : $t , s : $s")
             // Create an Intent to launch Activity
             val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                 .let { intent ->
@@ -53,13 +53,28 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             // Test setTime
             val str = "yyyyMMdd HH:mm".getTimeNow()
 
+            // TODO chan 날씨 아이콘 로직 수정 필요
+            var skyId = R.drawable.loading
+            skyId = when(sky) {
+                "1" -> { R.drawable.icon_sunny }
+                "2", "3" -> { R.drawable.icon_cloudy_a_lot }
+                "4" -> { R.drawable.icon_cloudy }
+                else -> { R.drawable.loading }
+            }
+
+            skyId = when(pty) {
+                "1" -> { R.drawable.icon_rainny }
+                "5" -> { R.drawable.icon_rainny }
+                else -> skyId
+            }
+
             val views: RemoteViews = RemoteViews(
                 context?.packageName,
                 R.layout.widget_small
             ).apply {
-                setTextViewText(R.id.tv_now, t)
+                setTextViewText(R.id.tv_now, "${tmp}°")
                 setTextViewText(R.id.tv_widget_text, str)
-                setTextViewText(R.id.tv_sky, s)
+                setImageViewResource(R.id.iv_sky, skyId)
                 setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
                 setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
             }

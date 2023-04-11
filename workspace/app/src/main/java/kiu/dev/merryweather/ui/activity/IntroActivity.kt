@@ -33,7 +33,8 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
         initViewModel()
         reqWeatherData()
 
-        // TODO chan 미세먼지 정보 필요
+        // TODO chan 미세먼지 데이터 필요 + 기상특보 데이터 필요  + 주간 기상 요약, 일일 기상 요약
+        // TODO chan MainActivity launchMode
     }
 
     private fun initUI() {
