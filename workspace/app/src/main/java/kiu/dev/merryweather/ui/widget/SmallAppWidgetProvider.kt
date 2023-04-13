@@ -10,8 +10,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.local.widget.WidgetId
-import kiu.dev.merryweather.data.repository.WeatherRepository
-import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.viewmodel.WidgetViewModel
 import kiu.dev.merryweather.utils.L

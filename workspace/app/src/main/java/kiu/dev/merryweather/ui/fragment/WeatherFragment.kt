@@ -23,6 +23,7 @@ import kiu.dev.merryweather.ui.adapter.WeatherWeekLineAdapter
 import kiu.dev.merryweather.viewmodel.MainViewModel
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
 import kiu.dev.merryweather.utils.*
+import org.json.JSONObject
 
 class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     override val layoutId: Int = R.layout.fragment_weather
@@ -32,6 +33,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
     private val localWeatherNowDataList = mutableListOf<WeatherNow>()
     private val weatherTimeLineAdapter = lazy { WeatherTimeLineAdapter(mutableListOf()) }
     private val weatherWeekLineAdapter = lazy { WeatherWeekLineAdapter(mutableListOf()) }
+    private val cityAirDataList = mutableListOf<JSONObject>()
 
     companion object {
         const val KEY = "key"
@@ -51,6 +53,14 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
         initViewModel()
         initUI()
+        viewModel.getCityAir(
+            mapOf(
+                "serviceKey" to C.WeatherApi.API_KEY,
+                "returnType" to "json",
+                "sidoName" to "서울",
+                "ver" to 1.3
+            )
+        )
 //        reqWeatherNow(
 //            C.WeatherData.Location.Seoul["nx"] ?: "",
 //            C.WeatherData.Location.Seoul["ny"] ?: ""
@@ -97,6 +107,7 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
 
         with(viewModel) {
             isLoading.observe(viewLifecycleOwner) {
+                // TODO chan 로딩 삭제
                 if (it){
                     (activity as BaseActivity<*>).showLoading()
                     return@observe
@@ -361,6 +372,30 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             weatherMidFcstJson.observe(viewLifecycleOwner) {
                 L.d("weatherMidFcstJson observe : $it")
             }
+
+            cityAirList.observe(viewLifecycleOwner) {
+                val pm10Grade: String =
+                    when(it[0].getString("pm10Grade1h")) {
+                        "1" -> "좋음"
+                        "2" -> "보통"
+                        "3" -> "나쁨"
+                        "4" -> "매우나쁨"
+                        else -> ""
+                    }
+
+                val pm25Grade: String =
+                    when(it[0].getString("pm25Grade1h")) {
+                        "1" -> "좋음"
+                        "2" -> "보통"
+                        "3" -> "나쁨"
+                        "4" -> "매우나쁨"
+                        else -> ""
+                    }
+                        binding.tvTestAir.text = "미세먼지 : " +
+                                "${it[0].getString("pm10Value")} , $pm10Grade" +
+                                "   초미세먼지 : " +
+                                "${it[0].getString("pm25Value")} , $pm25Grade"
+                    }
         }
 
     }
@@ -374,6 +409,14 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
         reqWeatherNow(
             C.WeatherData.Location.Seoul["nx"] ?: "",
             C.WeatherData.Location.Seoul["ny"] ?: ""
+        )
+        viewModel.getCityAir(
+            mapOf(
+                "serviceKey" to C.WeatherApi.API_KEY,
+                "returnType" to "json",
+                "sidoName" to "서울",
+                "ver" to 1.3
+            )
         )
     }
 

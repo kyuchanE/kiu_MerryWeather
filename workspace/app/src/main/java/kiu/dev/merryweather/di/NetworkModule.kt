@@ -19,6 +19,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.net.CookieManager
 import java.util.concurrent.TimeUnit
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @SuppressLint("StaticFieldLeak")
@@ -31,7 +32,14 @@ object NetworkModule {
     private const val WRITE_TIMEOUT = 3000L // 쓰기 타임
     private const val READ_TIMEOUT = 3000L // 읽기 타임
 
-    private val BASE_URL = C.WeatherApi.BASE_URL // API URL
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class WeatherRetrofit
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class AirRetrofit
+
 
     @Provides
     @Singleton
@@ -97,9 +105,27 @@ object NetworkModule {
      */
     @Provides
     @Singleton
+    @WeatherRetrofit
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(C.WeatherApi.BASE_URL)
+            .client(okHttpClient)
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())  // Rx를 사용할 수 있도록 아답터 적용
+            .addConverterFactory(ScalarsConverterFactory.create())      // ScalarConverter 적용
+            .addConverterFactory(GsonConverterFactory.create())         // GsonConverter 적용
+            .build()
+
+    /**
+     * 기본 설정하여 Retrofit을 반환
+     *
+     * @return 설정이 반영된 Retrofit
+     */
+    @Provides
+    @Singleton
+    @AirRetrofit
+    fun provideAirRetrofit(okHttpClient: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(C.AirApi.BASE_URL)
             .client(okHttpClient)
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())  // Rx를 사용할 수 있도록 아답터 적용
             .addConverterFactory(ScalarsConverterFactory.create())      // ScalarConverter 적용

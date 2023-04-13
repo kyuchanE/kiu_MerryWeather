@@ -12,6 +12,7 @@ import kiu.dev.merryweather.data.local.dao.WeatherMidDao
 import kiu.dev.merryweather.data.local.dao.WeatherNowDao
 import kiu.dev.merryweather.data.local.weather.mid.WeatherMid
 import kiu.dev.merryweather.data.local.weather.now.WeatherNow
+import kiu.dev.merryweather.di.NetworkModule
 import kiu.dev.merryweather.utils.asJsonArray
 import kiu.dev.merryweather.utils.asJsonObject
 import kiu.dev.merryweather.utils.asString

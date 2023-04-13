@@ -12,6 +12,7 @@ import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.local.widget.WidgetId
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
+import kiu.dev.merryweather.di.NetworkModule
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
 import kiu.dev.merryweather.utils.*
 import javax.inject.Inject

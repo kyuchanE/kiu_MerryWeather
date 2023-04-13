@@ -2,6 +2,7 @@ package kiu.dev.merryweather.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,15 +13,19 @@ import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.local.weather.mid.WeatherMid
 import kiu.dev.merryweather.data.local.weather.now.WeatherNow
 import kiu.dev.merryweather.data.local.widget.WidgetId
+import kiu.dev.merryweather.data.repository.AirRepository
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
+import kiu.dev.merryweather.di.NetworkModule
 import kiu.dev.merryweather.utils.*
+import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
-    private val widgetIdRepository: WidgetIdRepository
+    private val widgetIdRepository: WidgetIdRepository,
+    private val airRepository: AirRepository
 )  : BaseViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
@@ -52,6 +57,9 @@ class MainViewModel @Inject constructor(
 
     private val _widgetIdList = MutableLiveData<List<WidgetId>>()
     val widgetIdList : LiveData<List<WidgetId>> get() = _widgetIdList
+
+    private val _cityAirList = MutableLiveData<MutableList<JSONObject>>()
+    val cityAirList: LiveData<MutableList<JSONObject>> get() = _cityAirList
 
     private var isInitMidFinish: Boolean = false;
     private var isInitNowFinish: Boolean = false;
@@ -90,8 +98,7 @@ class MainViewModel @Inject constructor(
         addDisposable(
             weatherRepository.getNow(
                 params = params
-            ).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+            )
                 .doOnError { e ->
                     L.d("e : $e")
                 }
@@ -682,5 +689,42 @@ class MainViewModel @Inject constructor(
         } else {
             "1"
         }
+    }
+
+    /**
+     * 시도별 실시간 대기오염 조회
+     */
+    fun getCityAir(
+        params: Map<String, Any?> = mapOf()
+    ) {
+        // TODO chan RxJava 에러 핸들링
+        addDisposable(
+            airRepository.getCityAir(
+                params = params
+            )
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { jsonArray ->
+                    L.d("jsonArray : $jsonArray")
+                    val cityAirList = mutableListOf<JSONObject>()
+                    jsonArray.forEach { json ->
+                        val data = JSONObject()
+                        json as JsonObject
+                        data.put("pm10Value", json.asString("pm10Value", ""))
+                        data.put("pm10Grade1h", json.asString("pm10Grade1h", ""))
+                        data.put("pm25Value", json.asString("pm25Value", ""))
+                        data.put("pm25Grade1h", json.asString("pm25Grade1h", ""))
+                        data.put("dataTime", json.asString("dataTime", ""))
+                        cityAirList.add(data)
+                    }
+                    _cityAirList.postValue(cityAirList)
+                }
+                .doFinally {
+
+                }
+                .subscribe()
+        )
+
     }
 }

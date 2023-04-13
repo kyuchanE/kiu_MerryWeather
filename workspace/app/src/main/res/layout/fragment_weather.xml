@@ -136,6 +136,12 @@
                     android:paddingVertical="15dp" />
                 <!-- End 주간 날씨 예보 -->
 
+                <TextView
+                    android:id="@+id/tv_test_air"
+                    android:textColor="#1D1C1C"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>
