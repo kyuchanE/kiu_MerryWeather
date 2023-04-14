@@ -10,22 +10,31 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.local.widget.WidgetId
+import kiu.dev.merryweather.data.repository.AirRepository
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.di.NetworkModule
 import kiu.dev.merryweather.ui.widget.SmallAppWidgetProvider
 import kiu.dev.merryweather.utils.*
+import org.json.JSONObject
 import javax.inject.Inject
 
 @Module
 @InstallIn(SingletonComponent::class)
 class WidgetViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
-    private val widgetIdRepository: WidgetIdRepository
+    private val widgetIdRepository: WidgetIdRepository,
+    private val airRepository: AirRepository
 ) {
 
     private val widgetList = mutableListOf<WidgetId>()
     private var weathePasrams: Map<String, Any?> = mapOf()
+
+    private var tmp = ""
+    private var pty = ""
+    private var sky = ""
+
+    val cityAirList = mutableListOf<JSONObject>()
 
     enum class WeatherType {
         NOW, // 단기 예보
@@ -144,12 +153,6 @@ class WidgetViewModel @Inject constructor(
                                         it.asJsonObject.asString("category") == "PTY"   // 강수형태
                             }
 
-                    L.d("itemsJsonArray $itemsJsonArray")
-
-                    var tmp = ""
-                    var pty = ""
-                    var sky = ""
-
                     kotlin.run {
                         itemsJsonArray.forEach {
                             if (it.asJsonObject.asString("category") == "T1H") {
@@ -177,15 +180,14 @@ class WidgetViewModel @Inject constructor(
                         }
                     }
 
-                    // TODO chan 데이터 가공하여 Widget Update
-                    widgetList.forEach { id ->
-                        SmallAppWidgetProvider.updateAppWidget(
-                            appWidgetId = id.id?:0,
-                            tmp = tmp,
-                            sky = sky,
-                            pty = pty
+                    getCityAir(
+                        mapOf(
+                            "serviceKey" to C.WeatherApi.API_KEY,
+                            "returnType" to "json",
+                            "sidoName" to "서울",
+                            "ver" to 1.3
                         )
-                    }
+                    )
 
                 }
             }
@@ -281,5 +283,70 @@ class WidgetViewModel @Inject constructor(
 //            )
             return false
         }
+    }
+
+    private fun getCityAir(
+        params: Map<String, Any?> = mapOf()
+    ) {
+        airRepository.getCityAir(
+            params = params
+        )
+            .doOnError { e ->
+
+            }
+            .doOnNext { jsonArray ->
+                cityAirList.clear()
+                jsonArray.forEach { json ->
+                    val data = JSONObject()
+                    json as JsonObject
+                    data.put("pm10Value", json.asString("pm10Value", ""))
+                    data.put("pm10Grade1h", json.asString("pm10Grade1h", ""))
+                    data.put("pm25Value", json.asString("pm25Value", ""))
+                    data.put("pm25Grade1h", json.asString("pm25Grade1h", ""))
+                    data.put("dataTime", json.asString("dataTime", ""))
+                    cityAirList.add(data)
+                }
+            }
+            .doFinally {
+                var airStr = ""
+
+                if (cityAirList.size > 0) {
+                    val pm10Grade: String =
+                        when(cityAirList[0].getString("pm10Grade1h")) {
+                            "1" -> "좋음"
+                            "2" -> "보통"
+                            "3" -> "나쁨"
+                            "4" -> "매우나쁨"
+                            else -> ""
+                        }
+
+                    val pm25Grade: String =
+                        when (cityAirList[0].getString("pm25Grade1h")) {
+                            "1" -> "좋음"
+                            "2" -> "보통"
+                            "3" -> "나쁨"
+                            "4" -> "매우나쁨"
+                            else -> ""
+                        }
+                    airStr = "미세먼지 : " +
+                            "${cityAirList[0].getString("pm10Value")} , $pm10Grade" +
+                            "   초미세먼지 : " +
+                            "${cityAirList[0].getString("pm25Value")} , $pm25Grade"
+
+                }
+
+                // TODO chan 데이터 가공하여 Widget Update
+                widgetList.forEach { id ->
+                    SmallAppWidgetProvider.updateAppWidget(
+                        appWidgetId = id.id?:0,
+                        tmp = tmp,
+                        sky = sky,
+                        pty = pty,
+                        air = airStr
+                    )
+                }
+            }
+            .subscribe()
+
     }
 }

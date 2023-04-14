@@ -29,9 +29,10 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             context: Context? = mContext,
             appWidgetManager: AppWidgetManager? = mAppWidgetManager,
             appWidgetId: Int,
-            tmp: String,
-            sky: String,
-            pty: String
+            tmp: String = "",
+            sky: String = "",
+            pty: String = "",
+            air: String = ""
         ) {
             // Create an Intent to launch Activity
             val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
@@ -70,10 +71,15 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 context?.packageName,
                 R.layout.widget_small
             ).apply {
-                setTextViewText(R.id.tv_now, "${tmp}°")
-                setTextViewText(R.id.tv_widget_text, str)
+                if (tmp.isNotEmpty())
+                    setTextViewText(R.id.tv_now, "${tmp}°")
+                if (str.isNotEmpty())
+                    setTextViewText(R.id.tv_widget_text, str)
+                if (air.isNotEmpty())
+                    setTextViewText(R.id.tv_air, air)
+
                 setImageViewResource(R.id.iv_sky, skyId)
-                setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
+                setOnClickPendingIntent(R.id.ll_widget_container, pendingIntent)
                 setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
             }
 
@@ -81,9 +87,13 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         }
     }
 
+
+
     override fun onEnabled(context: Context?) {
         super.onEnabled(context)
         L.d("SmallAppWidgetProvider onEnabled")
+        // TODO chan 위젯 첫 생성시 데이터 만들어 노출 시켜야함
+        // TODO chan 위젯 크기 고정? 태블릿일 경우?
     }
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
@@ -139,7 +149,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                     it.packageName,
                     R.layout.widget_small
                 ).apply {
-                    setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
+                    setOnClickPendingIntent(R.id.ll_widget_container, pendingIntent)
                     setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
                     setTextViewText(R.id.tv_widget_text, str)
                 }

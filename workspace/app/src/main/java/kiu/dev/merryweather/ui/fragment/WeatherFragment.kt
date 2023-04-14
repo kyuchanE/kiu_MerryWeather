@@ -173,6 +173,34 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                 binding.tvValueT.text = time
                 binding.tvValue.text ="기온 ${tmp}° , 하늘 $sky, 강수 $pty"
 
+
+                var air = ""
+                with(this@WeatherFragment.cityAirDataList) {
+                    if (this.size > 0) {
+                        val pm10Grade: String =
+                            when(this[0].getString("pm10Grade1h")) {
+                                "1" -> "좋음"
+                                "2" -> "보통"
+                                "3" -> "나쁨"
+                                "4" -> "매우나쁨"
+                                else -> ""
+                            }
+
+                        val pm25Grade: String =
+                            when (this[0].getString("pm25Grade1h")) {
+                                "1" -> "좋음"
+                                "2" -> "보통"
+                                "3" -> "나쁨"
+                                "4" -> "매우나쁨"
+                                else -> ""
+                            }
+                        air = "미세먼지 : " +
+                                "${this[0].getString("pm10Value")} , $pm10Grade" +
+                                "   초미세먼지 : " +
+                                "${this[0].getString("pm25Value")} , $pm25Grade"
+                    }
+                }
+
                 // 위젯 데이터 갱신
                 this@WeatherFragment.widgetIdList.forEach {
                     it.id?.let {
@@ -182,7 +210,8 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
                             it,
                             tmp,
                             sky,
-                            pty
+                            pty,
+                            air
                         )
                     }
                 }
@@ -374,28 +403,52 @@ class WeatherFragment: BaseFragment<FragmentWeatherBinding>() {
             }
 
             cityAirList.observe(viewLifecycleOwner) {
-                val pm10Grade: String =
-                    when(it[0].getString("pm10Grade1h")) {
-                        "1" -> "좋음"
-                        "2" -> "보통"
-                        "3" -> "나쁨"
-                        "4" -> "매우나쁨"
-                        else -> ""
+                cityAirDataList.clear()
+                cityAirDataList.addAll(it)
+
+                if (it.size > 0) {
+                    var airStr = ""
+                    val pm10Grade: String =
+                        when(it[0].getString("pm10Grade1h")) {
+                            "1" -> "좋음"
+                            "2" -> "보통"
+                            "3" -> "나쁨"
+                            "4" -> "매우나쁨"
+                            else -> ""
+                        }
+
+                    val pm25Grade: String =
+                        when (it[0].getString("pm25Grade1h")) {
+                            "1" -> "좋음"
+                            "2" -> "보통"
+                            "3" -> "나쁨"
+                            "4" -> "매우나쁨"
+                            else -> ""
+                        }
+                    airStr = "미세먼지 : " +
+                            "${it[0].getString("pm10Value")} , $pm10Grade" +
+                            "   초미세먼지 : " +
+                            "${it[0].getString("pm25Value")} , $pm25Grade"
+
+
+                    binding.tvTestAir.text = airStr
+
+                    // 위젯 데이터 갱신
+                    this@WeatherFragment.widgetIdList.forEach {
+                        it.id?.let {
+                            SmallAppWidgetProvider.updateAppWidget(
+                                context = (activity as BaseActivity<*>).context,
+                                appWidgetManager = AppWidgetManager.getInstance((activity as BaseActivity<*>).context),
+                                appWidgetId = it,
+                                air = airStr
+                            )
+                        }
                     }
 
-                val pm25Grade: String =
-                    when(it[0].getString("pm25Grade1h")) {
-                        "1" -> "좋음"
-                        "2" -> "보통"
-                        "3" -> "나쁨"
-                        "4" -> "매우나쁨"
-                        else -> ""
-                    }
-                        binding.tvTestAir.text = "미세먼지 : " +
-                                "${it[0].getString("pm10Value")} , $pm10Grade" +
-                                "   초미세먼지 : " +
-                                "${it[0].getString("pm25Value")} , $pm25Grade"
-                    }
+                }
+
+
+            }
         }
 
     }
