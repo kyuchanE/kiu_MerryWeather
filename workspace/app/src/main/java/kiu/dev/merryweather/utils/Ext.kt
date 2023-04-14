@@ -25,6 +25,8 @@ import jp.wasabeef.glide.transformations.RoundedCornersTransformation
 import kiu.dev.merryweather.base.BaseActivity
 import kiu.dev.merryweather.di.GlideApp
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 ////////////////////////////// DataBinding //////////////////////////////
@@ -258,6 +260,71 @@ fun String.getYesterday() : String {
     } catch (e: Exception) {
         L.e(e.message)
         ""
+    }
+}
+
+fun String.getFutureDate(plusDate: Int): String {
+    return try {
+        val cal = Calendar.getInstance()
+        cal.time = Date()
+        cal.add(Calendar.DATE, plusDate)
+
+        val simpleDateFormat = SimpleDateFormat(this)
+        simpleDateFormat.format(cal.time)
+    } catch (e: Exception) {
+        L.e(e.message)
+        ""
+    }
+}
+
+fun String.getDayOfWeek(): String {
+    return try {
+        val cal = Calendar.getInstance()
+        cal.time = Date()
+        L.d("getDayOfWeek today : ${cal.get(Calendar.DAY_OF_WEEK)}")
+
+        val simpleDateFormat = SimpleDateFormat("yyyyMMdd")
+        val targetDay = this.toLong()
+        val today = simpleDateFormat.format(cal.time).toLong()
+
+        val moveDate = targetDay - today
+        cal.add(Calendar.DATE, moveDate.toInt())
+
+        L.d("getDayOfWeek targetDay : ${cal.get(Calendar.DAY_OF_WEEK)}")
+        when(cal.get(Calendar.DAY_OF_WEEK)) {
+            1 -> "일요일"
+            2 -> "월요일"
+            3 -> "화요일"
+            4 -> "수요일"
+            5 -> "목요일"
+            6 -> "금요일"
+            7 -> "토요일"
+            else -> ""
+        }
+    } catch (e: Exception) {
+        L.e(e.message)
+        ""
+    }
+}
+
+fun String.getDateList(): MutableList<String> {
+    val returnList = mutableListOf<String>()
+    try {
+        val cal = Calendar.getInstance()
+        cal.time = Date()
+        val simpleDateFormat = SimpleDateFormat(this)
+        returnList.add(simpleDateFormat.format(cal.time))
+
+        cal.add(Calendar.DATE, 1)
+        returnList.add(simpleDateFormat.format(cal.time))
+
+        cal.add(Calendar.DATE, 1)
+        returnList.add(simpleDateFormat.format(cal.time))
+
+        return returnList
+    } catch (e: Exception) {
+        L.e(e.message)
+        return returnList
     }
 }
 

@@ -5,10 +5,12 @@ import androidx.room.PrimaryKey
 import kiu.dev.merryweather.config.C
 import java.io.Serializable
 
+// TODO chan 지역별로 다른 날씨 데이터 값을 저장하고 있어야 할까? PK datetime -> 지역코드
+//  지역코드 { 날짜 { 시간 - 날씨데이터 } }
 @Entity(tableName = C.RoomTableName.WEATHER_NOW)
 data class WeatherNow(
     @PrimaryKey(autoGenerate = true)
-    var time: Long = 0L,  // 시간
+    var time: Long = 0L,  // 시간  fcstDate + fcstTime
     var location: String = "",   // 위치 정보
     var pop: String = "",   // 강수 확률
     var pty: String = "",   // 강수형태 : 없음(0),비(1),비/눈(2), 눈(3), 소나기(4), 빗방울(5), 빗방울눈날림(6), 눈날림(7)

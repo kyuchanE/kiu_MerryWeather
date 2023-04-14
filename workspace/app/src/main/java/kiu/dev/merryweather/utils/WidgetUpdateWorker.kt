@@ -69,7 +69,7 @@ class WidgetUpdateWorker(
         var nx: String = C.WeatherData.Location.Seoul["nx"] ?: ""
         var ny: String = C.WeatherData.Location.Seoul["ny"] ?: ""
 
-        var nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "yyyyMMdd".getTimeNow()
         val nowTimeHour: Int = "HH".getTimeNow().toInt()
         val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
@@ -79,7 +79,7 @@ class WidgetUpdateWorker(
             String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
         } else {
             if (nowTimeHour == 0) {
-                nowDate = "YYYYMMdd".getYesterday()
+                nowDate = "yyyyMMdd".getYesterday()
                 "2330"
             } else {
                 String.format("%02d", nowTimeHour-1) + "55"
@@ -126,14 +126,36 @@ class WidgetUpdateWorker(
 
                     L.d("itemsJsonArray $itemsJsonArray")
 
-                    val t1hList = arrayListOf<JsonElement>()
-                    itemsJsonArray.forEach {
-                        if (it.asJsonObject.asString("category") == "T1H") {
-                            t1hList.add(it.asJsonObject)
+                    var tmp = ""
+                    var pty = ""
+                    var sky = ""
+
+                    kotlin.run {
+                        itemsJsonArray.forEach {
+                            if (it.asJsonObject.asString("category") == "T1H") {
+                                tmp = it.asJsonObject.asString("fcstValue")
+                                return@run
+                            }
                         }
                     }
 
-                    val t = "Worker ${t1hList[0].asJsonObject.asString("fcstTime")} \n ${t1hList[0].asJsonObject.asString("fcstValue")}"
+                    kotlin.run {
+                        itemsJsonArray.forEach {
+                            if (it.asJsonObject.asString("category") == "SKY") {
+                                sky = it.asJsonObject.asString("fcstValue")
+                                return@run
+                            }
+                        }
+                    }
+
+                    kotlin.run {
+                        itemsJsonArray.forEach {
+                            if (it.asJsonObject.asString("category") == "PTY") {
+                                pty = it.asJsonObject.asString("fcstValue")
+                                return@run
+                            }
+                        }
+                    }
 
                     // TODO chan 데이터 가공하여 Widget Update
                     widgetList.forEach { id ->
@@ -141,8 +163,9 @@ class WidgetUpdateWorker(
                             context = context,
                             appWidgetManager = AppWidgetManager.getInstance(context),
                             appWidgetId = id.id?:0,
-                            t = t,
-                            s = ""
+                            tmp,
+                            sky,
+                            pty
                         )
                     }
                 }

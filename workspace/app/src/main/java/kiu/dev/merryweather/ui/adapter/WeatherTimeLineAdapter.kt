@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.data.local.WeatherTimeLineData
 import kiu.dev.merryweather.databinding.ItemWeatherTimeLineBinding
+import kiu.dev.merryweather.utils.L
 
 class WeatherTimeLineAdapter(
     private val weatherItems: MutableList<WeatherTimeLineData>
@@ -39,6 +40,10 @@ class WeatherTimeLineAdapter(
         }
     }
 
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherTimeLineViewHolder {
         val view: View = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_weather_time_line, parent, false)
@@ -52,6 +57,7 @@ class WeatherTimeLineAdapter(
     override fun getItemCount(): Int = itemList.size
 
     fun changeItemList(weatherItems: MutableList<WeatherTimeLineData>) {
+        L.d("changeItemList : $weatherItems")
         itemList.clear()
         itemList.addAll(weatherItems)
         notifyDataSetChanged()

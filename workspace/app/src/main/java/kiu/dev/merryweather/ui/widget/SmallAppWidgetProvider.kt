@@ -10,8 +10,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kiu.dev.merryweather.R
 import kiu.dev.merryweather.config.C
 import kiu.dev.merryweather.data.local.widget.WidgetId
-import kiu.dev.merryweather.data.repository.WeatherRepository
-import kiu.dev.merryweather.data.repository.WidgetIdRepository
 import kiu.dev.merryweather.ui.activity.MainActivity
 import kiu.dev.merryweather.viewmodel.WidgetViewModel
 import kiu.dev.merryweather.utils.L
@@ -31,14 +29,14 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             context: Context? = mContext,
             appWidgetManager: AppWidgetManager? = mAppWidgetManager,
             appWidgetId: Int,
-            t: String,
-            s: String
+            tmp: String = "",
+            sky: String = "",
+            pty: String = "",
+            air: String = ""
         ) {
-            L.d("SmallAppWidgetProvider onUpdate updateAppwidget : $appWidgetId , t : $t , s : $s")
             // Create an Intent to launch Activity
             val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                 .let { intent ->
-                    // TODO chan PendingIntent flags Issue
                     // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE
                     // or FLAG_MUTABLE be specified when creating a PendingIntent.
                     PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -52,16 +50,36 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 }
 
             // Test setTime
-            val str = "YYYYMMdd HH:mm".getTimeNow()
+            val str = "yyyyMMdd HH:mm".getTimeNow()
+
+            // TODO chan 날씨 아이콘 로직 수정 필요
+            var skyId = R.drawable.loading
+            skyId = when(sky) {
+                "1" -> { R.drawable.icon_sunny }
+                "2", "3" -> { R.drawable.icon_cloudy_a_lot }
+                "4" -> { R.drawable.icon_cloudy }
+                else -> { R.drawable.loading }
+            }
+
+            skyId = when(pty) {
+                "1" -> { R.drawable.icon_rainny }
+                "5" -> { R.drawable.icon_rainny }
+                else -> skyId
+            }
 
             val views: RemoteViews = RemoteViews(
                 context?.packageName,
                 R.layout.widget_small
             ).apply {
-                setTextViewText(R.id.tv_now, t)
-                setTextViewText(R.id.tv_widget_text, str)
-                setTextViewText(R.id.tv_sky, s)
-                setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
+                if (tmp.isNotEmpty())
+                    setTextViewText(R.id.tv_now, "${tmp}°")
+                if (str.isNotEmpty())
+                    setTextViewText(R.id.tv_widget_text, str)
+                if (air.isNotEmpty())
+                    setTextViewText(R.id.tv_air, air)
+
+                setImageViewResource(R.id.iv_sky, skyId)
+                setOnClickPendingIntent(R.id.ll_widget_container, pendingIntent)
                 setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
             }
 
@@ -69,9 +87,13 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         }
     }
 
+
+
     override fun onEnabled(context: Context?) {
         super.onEnabled(context)
         L.d("SmallAppWidgetProvider onEnabled")
+        // TODO chan 위젯 첫 생성시 데이터 만들어 노출 시켜야함
+        // TODO chan 위젯 크기 고정? 태블릿일 경우?
     }
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
@@ -101,7 +123,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 widgetViewModel.saveWidgetId(WidgetId(id = appWidgetId))
 
                 // Test setTime
-                val str = "YYYYMMdd HH:mm".getTimeNow()
+                val str = "yyyyMMdd HH:mm".getTimeNow()
 
                 // get WeatherData
                 getWeatherData()
@@ -109,7 +131,6 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                 // Create an Intent to launch Activity
                 val pendingIntent: PendingIntent = Intent(context, MainActivity::class.java)
                     .let { intent ->
-                        // TODO chan PendingIntent flags Issue
                         // Targeting S+ (version 31 and above) requires that one of FLAG_IMMUTABLE
                         // or FLAG_MUTABLE be specified when creating a PendingIntent.
                         PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
@@ -128,7 +149,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
                     it.packageName,
                     R.layout.widget_small
                 ).apply {
-                    setOnClickPendingIntent(R.id.fl_widget_container, pendingIntent)
+                    setOnClickPendingIntent(R.id.ll_widget_container, pendingIntent)
                     setOnClickPendingIntent(R.id.iv_refresh, refreshIntent)
                     setTextViewText(R.id.tv_widget_text, str)
                 }
@@ -160,7 +181,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         var nx: String = C.WeatherData.Location.Seoul["nx"] ?: ""
         var ny: String = C.WeatherData.Location.Seoul["ny"] ?: ""
 
-        var nowDate: String = "YYYYMMdd".getTimeNow()
+        var nowDate: String = "yyyyMMdd".getTimeNow()
         val nowTimeHour: Int = "HH".getTimeNow().toInt()
         val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
@@ -170,7 +191,7 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
             String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
         } else {
             if (nowTimeHour == 0) {
-                nowDate = "YYYYMMdd".getYesterday()
+                nowDate = "yyyyMMdd".getYesterday()
                 "2330"
             } else {
                 String.format("%02d", nowTimeHour-1) + "55"
@@ -178,6 +199,8 @@ class SmallAppWidgetProvider: AppWidgetProvider() {
         }
 
         L.d("SmallAppWidgetProvider getWeatherData $nowDate : $baseTime")
+
+        // TODO chan numOfRows 더 큰 값 필요
         widgetViewModel.updateWeatherData(
             mapOf(
                 "ServiceKey" to C.WeatherApi.API_KEY,

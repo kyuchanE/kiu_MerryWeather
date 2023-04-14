@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:paddingStart="15dp"
+        android:paddingEnd="15dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tv_day"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/black"
+            tools:text="월요일"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_invert_colors_24"/>
+
+        <TextView
+            android:id="@+id/tv_pop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            tools:text="70%"/>
+
+        <ImageView
+            android:id="@+id/iv_am_sky"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/icon_sunny"/>
+
+        <ImageView
+            android:id="@+id/iv_pm_sky"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/icon_sunny"/>
+
+        <TextView
+            android:id="@+id/tv_tmx"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            tools:text="22"/>
+
+        <TextView
+            android:id="@+id/tv_tmn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/black"
+            tools:text="6"/>
+
+    </LinearLayout>
+</layout>

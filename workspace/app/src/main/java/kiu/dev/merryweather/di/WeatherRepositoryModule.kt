@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kiu.dev.merryweather.data.BasicApi
+import kiu.dev.merryweather.data.local.dao.WeatherMidDao
 import kiu.dev.merryweather.data.local.dao.WeatherNowDao
 import kiu.dev.merryweather.data.repository.WeatherRepository
 
@@ -17,6 +18,7 @@ object WeatherRepositoryModule {
     @ActivityRetainedScoped
     fun provideWeatherRepository(
         basicApi: BasicApi,
-        weatherNowDao: WeatherNowDao
-    ) = WeatherRepository(basicApi, weatherNowDao)
+        weatherNowDao: WeatherNowDao,
+        weatherMidDao: WeatherMidDao
+    ) = WeatherRepository(basicApi, weatherNowDao, weatherMidDao)
 }

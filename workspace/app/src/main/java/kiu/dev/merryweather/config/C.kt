@@ -10,8 +10,12 @@ object C {
         const val WEATHER_MID_FCST: String = "MidFcstInfoService/getMidLandFcst"
     }
 
+    object AirApi {
+        const val BASE_URL: String = "http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/"
+        const val CITY_AIR: String = "getCtprvnRltmMesureDnsty"
+    }
+
     object WeatherData {
-        // TODO chan 단기예보 시간
         val WEATHER_NOW_GET_DATA_TIME = listOf(
             "0210",
             "0510",
@@ -26,6 +30,7 @@ object C {
         object Location {
             const val LOCATION_SEOUL = "seoul"
 
+            // TODO chan NOW / MID 지역 코드가 다름
             val Seoul = mapOf(
                 "nx" to "60",
                 "ny" to "127"

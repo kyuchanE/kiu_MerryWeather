@@ -2,7 +2,6 @@ package kiu.dev.merryweather.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -11,23 +10,29 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kiu.dev.merryweather.base.BaseViewModel
 import kiu.dev.merryweather.config.C
+import kiu.dev.merryweather.data.local.weather.mid.WeatherMid
 import kiu.dev.merryweather.data.local.weather.now.WeatherNow
 import kiu.dev.merryweather.data.local.widget.WidgetId
+import kiu.dev.merryweather.data.repository.AirRepository
 import kiu.dev.merryweather.data.repository.WeatherRepository
 import kiu.dev.merryweather.data.repository.WidgetIdRepository
+import kiu.dev.merryweather.di.NetworkModule
 import kiu.dev.merryweather.utils.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val weatherRepository: WeatherRepository,
-    private val widgetIdRepository: WidgetIdRepository
+    private val widgetIdRepository: WidgetIdRepository,
+    private val airRepository: AirRepository
 )  : BaseViewModel() {
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading : LiveData<Boolean> get() = _isLoading
+
+    private val _isInitFinish = MutableLiveData<Boolean>()
+    val isInitFinish: LiveData<Boolean> get() = _isInitFinish
 
     private val _showError = MutableLiveData<String>()
     val showError : LiveData<String> get() = _showError
@@ -38,22 +43,32 @@ class MainViewModel @Inject constructor(
     private val _weatherRightNowJson = MutableLiveData<List<JsonElement>>()
     val weatherRightNowJson : LiveData<List<JsonElement>> get() = _weatherRightNowJson
 
-    private val _weatherMidTaJson = MutableLiveData<JsonElement>()
-    val weatherMidTaJson : LiveData<JsonElement> get() = _weatherMidTaJson
+    private val _weatherMidTaJson = MutableLiveData<JsonObject>()
+    val weatherMidTaJson : LiveData<JsonObject> get() = _weatherMidTaJson
 
-    private val _weatherMidFcstJson = MutableLiveData<JsonElement>()
-    val weatherMidFcstJson : LiveData<JsonElement> get() = _weatherMidFcstJson
+    private val _weatherMidFcstJson = MutableLiveData<JsonObject>()
+    val weatherMidFcstJson : LiveData<JsonObject> get() = _weatherMidFcstJson
 
     private val _localWeatherNowDataList = MutableLiveData<List<WeatherNow>>()
     val localWeatherNowDataList: LiveData<List<WeatherNow>> get() = _localWeatherNowDataList
 
+    private val _localMidWeatherDataList = MutableLiveData<List<WeatherMid>>()
+    val localMidWeatherDataList: LiveData<List<WeatherMid>> get() = _localMidWeatherDataList
+
     private val _widgetIdList = MutableLiveData<List<WidgetId>>()
     val widgetIdList : LiveData<List<WidgetId>> get() = _widgetIdList
+
+    private val _cityAirList = MutableLiveData<MutableList<JSONObject>>()
+    val cityAirList: LiveData<MutableList<JSONObject>> get() = _cityAirList
+
+    private var isInitMidFinish: Boolean = false;
+    private var isInitNowFinish: Boolean = false;
 
     enum class WeatherType {
         NOW, // 단기 예보
         RIGHT_NOW, // 초단기 예보
-        MID
+        MID_TA,     // 중기 최저, 최고
+        MID_FCST    // 중기 날씨
     }
 
     // TODO chan 단기/초단기/중기 데이터
@@ -70,7 +85,8 @@ class MainViewModel @Inject constructor(
      * @param ny  예보지점 Y 좌표
      */
     fun getNowWeather(
-        params: Map<String, Any?> = mapOf()
+        params: Map<String, Any?> = mapOf(),
+        callRightNowData: Boolean = true
     ) {
         _isLoading.postValue(true)
 
@@ -82,8 +98,7 @@ class MainViewModel @Inject constructor(
         addDisposable(
             weatherRepository.getNow(
                 params = params
-            ).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+            )
                 .doOnError { e ->
                     L.d("e : $e")
                 }
@@ -102,35 +117,41 @@ class MainViewModel @Inject constructor(
                     _weatherNowJson.postValue(itemsJsonArray)
                 }
                 .doFinally{
-                    var nowDate: String = "YYYYMMdd".getTimeNow()
-                    val nowTimeHour: Int = "HH".getTimeNow().toInt()
-                    val nowTimeMinute: Int = "mm".getTimeNow().toInt()
+                    if (callRightNowData) {
+                        var nowDate: String = "yyyyMMdd".getTimeNow()
+                        val nowTimeHour: Int = "HH".getTimeNow().toInt()
+                        val nowTimeMinute: Int = "mm".getTimeNow().toInt()
 
-                    L.d("reqWeatherRightNow : $nowDate , hour : $nowTimeHour , minute : $nowTimeMinute")
+                        L.d("reqWeatherRightNow : $nowDate , hour : $nowTimeHour , minute : $nowTimeMinute")
 
-                    val baseTime: String = if (nowTimeMinute >= 30){
-                        String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
-                    } else {
-                        if (nowTimeHour == 0) {
-                            nowDate = "YYYYMMdd".getYesterday()
-                            "2330"
+                        val baseTime: String = if (nowTimeMinute >= 30){
+                            String.format("%02d", nowTimeHour) + String.format("%02d", nowTimeMinute)
                         } else {
-                            String.format("%02d", nowTimeHour-1) + "55"
+                            if (nowTimeHour == 0) {
+                                nowDate = "yyyyMMdd".getYesterday()
+                                "2330"
+                            } else {
+                                String.format("%02d", nowTimeHour-1) + "55"
+                            }
                         }
+
+                        // TODO chan numOfRows 더 큰 값 필요
+                        getRightNowWeather(
+                            mapOf(
+                                "ServiceKey" to C.WeatherApi.API_KEY,
+                                "dataType" to "JSON",
+                                "pageNo" to "1",
+                                "numOfRows" to "50",
+                                "base_date" to nowDate,
+                                "base_time" to baseTime,
+                                "nx" to params["nx"],
+                                "ny" to params["ny"]
+                            )
+                        )
+                    } else {
+
                     }
 
-                    getRightNowWeather(
-                        mapOf(
-                            "ServiceKey" to C.WeatherApi.API_KEY,
-                            "dataType" to "JSON",
-                            "pageNo" to "1",
-                            "numOfRows" to "50",
-                            "base_date" to nowDate,
-                            "base_time" to baseTime,
-                            "nx" to params["nx"],
-                            "ny" to params["ny"]
-                        )
-                    )
                 }
                 .subscribe()
         )
@@ -182,6 +203,8 @@ class MainViewModel @Inject constructor(
                 }
                 .doFinally{
                     _isLoading.postValue(false)
+                    isInitNowFinish = true
+                    _isInitFinish.postValue(isInitMidFinish&&isInitNowFinish)
                 }
                 .subscribe()
         )
@@ -243,12 +266,21 @@ class MainViewModel @Inject constructor(
             ).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError { e ->
-                    L.d("e : $e")
+                    L.d("e : ${e.message}")
                 }
                 .doOnNext { json ->
-                    L.d("json : $json")
-                    if (isWeatherSuccess(json)){
-                        _weatherMidTaJson.postValue(json)
+                    L.d("WEATHER_MID_TA json : $json")
+                    try {
+                        if (isWeatherSuccess(json)){
+                            var item: JsonObject = json.asJsonObject("response")
+                                .asJsonObject("body")
+                                .asJsonObject("items")
+                                .asJsonArray("item")
+                                .get(0).asJsonObject
+                            _weatherMidTaJson.postValue(item)
+                        }
+                    } catch (e: Exception) {
+
                     }
                 }
                 .doFinally{
@@ -288,13 +320,22 @@ class MainViewModel @Inject constructor(
                     L.d("e : $e")
                 }
                 .doOnNext { json ->
-                    L.d("json : $json")
+                    L.d("WEATHER_MID_FCST json : $json")
                     if (isWeatherSuccess(json)){
-                        _weatherMidFcstJson.postValue(json)
+                        var item: JsonObject = json.asJsonObject("response")
+                            .asJsonObject("body")
+                            .asJsonObject("items")
+                            .asJsonArray("item")
+                            .get(0).asJsonObject
+                        _weatherMidFcstJson.postValue(item)
+
+                        saveLocalMidWeatherData(_weatherMidTaJson.value, item)
                     }
                 }
                 .doFinally{
                     _isLoading.postValue(false)
+                    isInitMidFinish = true
+                    _isInitFinish.postValue(isInitNowFinish&&isInitMidFinish)
                 }
                 .subscribe()
         )
@@ -350,6 +391,25 @@ class MainViewModel @Inject constructor(
     }
 
     /**
+     * 로컬에 저장된 중기 날씨 데이터 조회
+     */
+    fun getLocalMidWeatherData() {
+        addDisposable(
+            weatherRepository.getLocalMidWeatherData()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { list ->
+                    L.d("local mid weather list : $list")
+                    _localMidWeatherDataList.postValue(list)
+                }
+                .subscribe()
+        )
+    }
+
+    /**
      * 로컬에 초단기 날씨 데이터 갱신
      */
     fun saveLocalNowWeatherData(dataList: MutableList<WeatherNow>) {
@@ -394,8 +454,35 @@ class MainViewModel @Inject constructor(
         )
     }
 
+    /**c
+     * ROOM 로컬 날씨 데이터 저장 (중기)
+     */
+    fun saveLocalMidWeatherData(midTaJson: JsonObject?, midFcstJson: JsonObject?) {
+        var weatherMidList = mutableListOf<WeatherMid>()
+        var midTaJson: JsonObject? = midTaJson
+        var midFcstJson: JsonObject? = midFcstJson
+
+        for (i in 3..7) {
+            weatherMidList.add(
+                WeatherMid(
+                    date = ("yyyyMMdd".getFutureDate(i)).toLong(),
+                    tmx = midTaJson?.asString("taMax$i")?:"",
+                    tmn = midTaJson?.asString("taMin$i")?:"",
+                    amPop= midFcstJson?.asString("rnSt${i}Am")?:"",
+                    pmPop = midFcstJson?.asString("rnSt${i}Pm")?:"",
+                    amPty = getPty(midFcstJson?.asString("wf${i}Am")?:""),
+                    pmPty = getPty(midFcstJson?.asString("wf${i}Pm")?:""),
+                    amSky = getSky(midFcstJson?.asString("wf${i}Am")?:""),
+                    pmSky = getSky(midFcstJson?.asString("wf${i}Pm")?:"")
+                )
+            )
+        }
+        L.d("saveLocalWeatherData 중기 : $weatherMidList")
+        saveLocalMidWeatherData(weatherMidList)
+    }
+
     /**
-     * ROOM 로컬 날씨 데이터 저장
+     * ROOM 로컬 날씨 데이터 저장 (단기)
      */
     fun saveLocalWeatherData(data: List<JsonElement>, type: WeatherType) {
         // TODO chan 중복된 시간 데이터는 갱신 / 새로운 데이터는 추가,
@@ -431,7 +518,6 @@ class MainViewModel @Inject constructor(
                 data[0].asJsonObject.asString("nx") + "." +
                         data[0].asJsonObject.asString("ny")
 
-
             data.forEach { data ->
                 if (data.asJsonObject.asString("fcstDate") == timeData["fcstDate"] &&
                     data.asJsonObject.asString("fcstTime") == timeData["fcstTime"]) {
@@ -449,6 +535,8 @@ class MainViewModel @Inject constructor(
                                 pcp = data.asJsonObject.asString("fcstValue")
                             }
                         }
+
+                        // TODO chan 단기 값은 인트로에서 받은 값과 같이 사용해야 하기 때문에 수정 필요
                         WeatherType.NOW -> {            // 단기
                             if (data.asJsonObject.asString("category") == "PTY") {
                                 pty = data.asJsonObject.asString("fcstValue")
@@ -503,7 +591,6 @@ class MainViewModel @Inject constructor(
                         .subscribe()
                 )
             }
-
             else -> {}
         }
 
@@ -516,7 +603,7 @@ class MainViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError { e ->
-                    L.d("e : $e")
+                    L.e("e : $e")
                 }
                 .subscribe()
         )
@@ -526,22 +613,21 @@ class MainViewModel @Inject constructor(
      * ROOM 로컬 지난 날씨 데이터 삭제
      */
     fun deleteBeforeLocalWeatherData(weatherNowDataList: MutableList<WeatherNow>) {
-        val today = "YYYYMMdd".getTimeNow().toLong()
+        // TODO chan 기준 변경 필요 어제 말고 그제  (어제 날씨 데이터 사용 여부 필요)
+        val yesterday = "yyyyMMdd".getYesterday().toLong()
         val time = "HHmm".getTimeNow().toInt()
         val deleteDataList: MutableList<WeatherNow> = mutableListOf()
 
         weatherNowDataList.forEach {
-            // TODO chan 날짜 비교 후 시간 비교 추가하여 지난시간 데이터 삭제
-            if (it.time/10000 < today) {
+            if (it.time/10000 < yesterday) {
                 deleteDataList.add(it)
-            } else if (it.time/10000 == today &&
+            } else if (it.time/10000 == yesterday &&
                 it.time%10000 < time-100) {
                 deleteDataList.add(it)
             }
         }
 
         L.d("deleteLocalWeatherDataList : $deleteDataList")
-
         if(deleteDataList.size > 0) {
             addDisposable(
                 weatherRepository.deleteLocalWeatherData(*deleteDataList.toTypedArray())
@@ -556,6 +642,89 @@ class MainViewModel @Inject constructor(
                     .subscribe()
             )
         }
+
+    }
+
+    fun saveLocalMidWeatherData(data: MutableList<WeatherMid>) {
+        addDisposable(
+            weatherRepository.saveLocalMidWeatherData(*data.toTypedArray())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { e ->
+                    L.e("e : $e")
+                }
+                .subscribe()
+        )
+    }
+
+    fun deleteBeforeLocalMidWeatherData(weatherNowDataList: MutableList<WeatherMid>) {
+        // TODO chan ROOM 로컬 지난 중기 날씨 데이터 삭제
+    }
+
+    fun getPty(data: String): String {
+        return if (data.contains("맑음")) {
+            "0"
+        } else if(data.contains("비")) {
+            "1"
+        } else if(data.contains("비/눈")) {
+            "2"
+        }  else if(data.contains("눈")) {
+            "3"
+        } else if(data.contains("소나기")) {
+            "4"
+        } else if(data.contains("빗방울")) {
+            "5"
+        } else {
+            "0"
+        }
+    }
+
+    fun getSky(data: String): String {
+        return if(data.contains("맑음")) {
+            "1"
+        } else if(data.contains("구름")) {
+            "3"
+        } else if(data.contains("흐림") || data.contains("흐리고")) {
+            "4"
+        } else {
+            "1"
+        }
+    }
+
+    /**
+     * 시도별 실시간 대기오염 조회
+     */
+    fun getCityAir(
+        params: Map<String, Any?> = mapOf()
+    ) {
+        // TODO chan RxJava 에러 핸들링
+        addDisposable(
+            airRepository.getCityAir(
+                params = params
+            )
+                .doOnError { e ->
+                    L.d("e : $e")
+                }
+                .doOnNext { jsonArray ->
+                    L.d("jsonArray : $jsonArray")
+                    val cityAirList = mutableListOf<JSONObject>()
+                    jsonArray.forEach { json ->
+                        val data = JSONObject()
+                        json as JsonObject
+                        data.put("pm10Value", json.asString("pm10Value", ""))
+                        data.put("pm10Grade1h", json.asString("pm10Grade1h", ""))
+                        data.put("pm25Value", json.asString("pm25Value", ""))
+                        data.put("pm25Grade1h", json.asString("pm25Grade1h", ""))
+                        data.put("dataTime", json.asString("dataTime", ""))
+                        cityAirList.add(data)
+                    }
+                    _cityAirList.postValue(cityAirList)
+                }
+                .doFinally {
+
+                }
+                .subscribe()
+        )
 
     }
 }
