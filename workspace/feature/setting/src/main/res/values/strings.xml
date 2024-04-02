@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MerryWeather</string>
+
+    <string name="mw_smart_store">https://m.smartstore.naver.com/merryweather</string>
+</resources>
