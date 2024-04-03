@@ -2,31 +2,38 @@ package kiu.dev.merryweather
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.kyu.main.ui.MainActivity
 import dev.kyu.ui.base.BaseActivity
+import dev.kyu.ui.utils.L
 import dev.kyu.ui.utils.setStatusBarTransparent
 import kiu.dev.merryweather.databinding.ActivitySplashBinding
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SplashActivity : BaseActivity<ActivitySplashBinding>() {
 
     override val layoutId: Int = R.layout.activity_splash
 
+    private val viewModel by viewModels<SplashViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // TODO chan : Splash Screen UI
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        initView()
-        observeViewModel()
-
     }
 
-    override fun initView() {
+    override fun init() {
+        observeViewModel()
+
         setStatusBarTransparent()
         defaultPadding(binding.clContainer)
+
+        reqWeatherData()
     }
 
     private fun moveMain() {
@@ -46,14 +53,32 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
      * 날씨 데이터 요청
      */
     private fun reqWeatherData() {
-
+        viewModel.getMidWeatherFcst(
+            10,
+            1,
+            "11B10101",
+            "202404030600"
+        )
     }
 
 
     /**
-     * viewModel observe 세팅
+     * observe viewModel
      */
     private fun observeViewModel() {
+
+        lifecycleScope.launch {
+            viewModel.loadingController.collect {
+                L.d("Loading : $it")
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.midWeatherFcstData.collect {
+                L.d("MidLandWeatherFcstData : $it")
+                moveMain()
+            }
+        }
 
     }
 

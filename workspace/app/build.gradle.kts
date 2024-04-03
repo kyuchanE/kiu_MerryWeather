@@ -70,6 +70,7 @@ dependencies {
 
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
+    implementation(project(":core:data"))
     implementation(project(":feature:main"))
     implementation(project(":feature:weather"))
     implementation(project(":feature:setting"))

@@ -30,10 +30,10 @@ abstract class BaseActivity<B: ViewDataBinding>: AppCompatActivity() {
 
         binding = bind(layoutId)
         binding.lifecycleOwner = this
-        initView()
+        init()
     }
 
-    abstract fun initView()
+    abstract fun init()
 
     /**
      * 상태바 숨김시 해당 높이값을 구해서 패딩 적용

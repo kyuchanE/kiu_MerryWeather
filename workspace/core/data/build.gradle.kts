@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -18,12 +20,20 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+
+            // 개발여부설정 : false
+            buildConfigField ("boolean", "DEV", "false")
+            // Get Weather API Key
+            buildConfigField("String", "WEATHER_API_KEY", getWeatherApiKey())
+        }
+        getByName("debug") {
+            // 개발여부설정 : true
+            buildConfigField("boolean", "DEV", "true")
+            // Get Weather API Key
+            buildConfigField("String", "WEATHER_API_KEY", getWeatherApiKey())
         }
     }
     compileOptions {
@@ -33,7 +43,12 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
+
+fun getWeatherApiKey(): String = gradleLocalProperties(rootDir).getProperty("weather.api.key", "")
 
 dependencies {
 

@@ -12,8 +12,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object ApiModule {
 
-    @Singleton
     @Provides
+    @Singleton
     fun provideWeatherApiService(provideWeatherRetrofit: Retrofit): WeatherApi =
         provideWeatherRetrofit.create(WeatherApi::class.java)
 

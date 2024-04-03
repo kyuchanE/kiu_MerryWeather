@@ -32,14 +32,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         SettingFragment() as Fragment
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    override fun init() {
         // TODO chan MainActivity 로직 정리 필요 -> WeatherFragment
         // TODO chan Main에서 필요한 로직은 무엇?
 
-        initView()
-//        widgetUpdateWorkInfo = workManager.getWorkInfosByTagLiveData(C.WorkTag.WIDGET_UPDATE)
+        //        widgetUpdateWorkInfo = workManager.getWorkInfosByTagLiveData(C.WorkTag.WIDGET_UPDATE)
         observeViewModel()
 
         binding.tv1.setOnClickListener {
@@ -54,9 +51,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.vpMain.setCurrentItem(2, false)
         }
 
-    }
-
-    override fun initView() {
         pageAdapter = MainPageAdapter(this, fragmentList)
         with(binding.vpMain) {
             adapter = pageAdapter

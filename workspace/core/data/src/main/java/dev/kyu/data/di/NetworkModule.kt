@@ -34,7 +34,7 @@ object NetworkModule {
     fun provideOkHttpClient(): OkHttpClient =
         if (PRINT_LOG) {
             OkHttpClient.Builder()
-                .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS)) // https 관련 보안 옵션
+//                .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS)) // https 관련 보안 옵션
                 .cookieJar(JavaNetCookieJar(CookieManager()))       // 쿠키 매니저 연결
                 .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)  // 쓰기 타임아웃 시간 설정
                 .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)      // 읽기 타임아웃 시간 설정
@@ -56,7 +56,7 @@ object NetworkModule {
 
         } else {
             OkHttpClient.Builder()
-                .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS)) // https 관련 보안 옵션
+//                .connectionSpecs(listOf(ConnectionSpec.COMPATIBLE_TLS)) // https 관련 보안 옵션
                 .cookieJar(JavaNetCookieJar(CookieManager()))       // 쿠키 매니저 연결
                 .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)  // 쓰기 타임아웃 시간 설정
                 .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)      // 읽기 타임아웃 시간 설정
@@ -87,7 +87,7 @@ object NetworkModule {
         okHttpClient: OkHttpClient,
         gsonConverterFactory: GsonConverterFactory
     ): Retrofit = Retrofit.Builder()
-        .baseUrl(NetworkConfig.weatherBaseUrl)
+        .baseUrl(NetworkConfig.Weather.weatherBaseUrl)
         .client(okHttpClient)
         .addConverterFactory(ScalarsConverterFactory.create())      // ScalarConverter 적용
         .addConverterFactory(gsonConverterFactory)                  // GsonConverter 적용

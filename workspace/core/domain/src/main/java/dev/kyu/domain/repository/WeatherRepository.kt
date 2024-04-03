@@ -1,9 +1,14 @@
 package dev.kyu.domain.repository
 
-import com.google.gson.JsonObject
+import dev.kyu.domain.model.MidLandFcstData
 import kotlinx.coroutines.flow.Flow
 
 interface WeatherRepository {
 
-    suspend fun getFctShort(): Flow<JsonObject?>
+    fun getMidLandFcstData(
+        numOfRows: Int,
+        pageNo: Int,
+        regId: String,
+        tmFc: String,
+    ): Flow<MidLandFcstData?>
 }

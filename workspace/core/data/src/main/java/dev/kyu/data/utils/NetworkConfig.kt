@@ -2,7 +2,13 @@ package dev.kyu.data.utils
 
 object NetworkConfig {
 
-    const val weatherBaseUrl = "https://apihub.kma.go.kr"
-    const val weatherShort = "api/typ01/url/fct_afs_dl.php"
+    object Weather {
+        const val weatherBaseUrl = "http://apis.data.go.kr"
+
+        object Mid {
+            const val midBaseUrl = "1360000/MidFcstInfoService/"
+            const val midLandFcst = "getMidLandFcst"
+        }
+    }
 
 }
