@@ -9,6 +9,13 @@ object NetworkConfig {
             const val midBaseUrl = "1360000/MidFcstInfoService/"
             const val midLandFcst = "getMidLandFcst"
         }
+
+        object Vilage {
+            const val vilageBaseUrl = "1360000/VilageFcstInfoService_2.0/"
+            const val vilageFcst = "getVilageFcst"
+            const val ultraSrtFcst = "getUltraSrtFcst"
+        }
+
     }
 
 }

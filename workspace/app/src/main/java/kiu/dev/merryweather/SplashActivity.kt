@@ -53,12 +53,33 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
      * 날씨 데이터 요청
      */
     private fun reqWeatherData() {
-        viewModel.getMidWeatherFcst(
-            10,
+//        viewModel.getMidWeatherFcst(
+//            10,
+//            1,
+//            "11B10101",
+//            "202404041300"
+//        )
+
+//        viewModel.reqWeatherData(
+//            100,
+//            1,
+//            "11B10101",
+//            "202404040600",
+//            55,
+//            127,
+//            "20240404",
+//            "1230"
+//        )
+
+        viewModel.getUltraWeatherFcst(
+            100,
             1,
-            "11B10101",
-            "202404030600"
+            55,
+            127,
+            "20240404",
+            "1230"
         )
+
     }
 
 
@@ -70,13 +91,15 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
         lifecycleScope.launch {
             viewModel.loadingController.collect {
                 L.d("Loading : $it")
+                if (!it) {
+                    moveMain()
+                }
             }
         }
 
         lifecycleScope.launch {
             viewModel.midWeatherFcstData.collect {
                 L.d("MidLandWeatherFcstData : $it")
-                moveMain()
             }
         }
 

@@ -1,8 +1,8 @@
 package dev.kyu.data.model
 
-import dev.kyu.domain.model.MidLandFcstData
+import dev.kyu.domain.model.VilageFcstData
 
-data class MidLandFcstResponse(
+data class VilageFcstResponse(
     val response: Response
 ) {
 
@@ -23,21 +23,21 @@ data class MidLandFcstResponse(
             val totalCount: Int,
         ) {
             data class Items(
-                val item: List<MidLandFcstData.Item>,
+                val item: List<VilageFcstData.Item>,
             )
         }
     }
 
-    fun toDomain(): MidLandFcstData {
-        var doMainItem: MidLandFcstData.Item? = null
+    fun toDomain(): VilageFcstData {
+        var doMainItems: List<VilageFcstData.Item>? = null
         if (this.response.body.items.item.isNotEmpty()) {
-            doMainItem = this.response.body.items.item[0]
+            doMainItems = this.response.body.items.item
         }
 
-        return MidLandFcstData(
+        return VilageFcstData(
             this.response.header.resultCode,
             this.response.header.resultMsg,
-            doMainItem,
+            doMainItems
         )
     }
 

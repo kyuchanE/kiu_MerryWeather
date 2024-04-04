@@ -3,9 +3,9 @@ package dev.kyu.domain.model
 data class MidLandFcstData(
     val resultCode: String,
     val resultMsg: String,
-    val midLandFcstItem: Item?,
+    val midLandFcstItems: Item?,
 
-) {
+    ) {
     data class Item(
         val regId: String,
         val rnSt3Am: Int,

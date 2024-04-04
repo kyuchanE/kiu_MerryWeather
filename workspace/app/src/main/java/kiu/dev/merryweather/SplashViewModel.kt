@@ -5,18 +5,22 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.kyu.domain.model.MidLandFcstData
 import dev.kyu.domain.repository.WeatherRepository
 import dev.kyu.domain.usecase.GetMidWeatherUseCase
+import dev.kyu.domain.usecase.GetVilageWeatherUseCase
 import dev.kyu.ui.base.BaseViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val midWeatherUseCase: GetMidWeatherUseCase,
+    private val vilageWeatherUserCase: GetVilageWeatherUseCase,
 ): BaseViewModel() {
 
     private val _loadingController = MutableSharedFlow<Boolean>()
@@ -47,5 +51,102 @@ class SplashViewModel @Inject constructor(
         }
     }
 
+    fun getUltraWeatherFcst(
+        numOfRows: Int,
+        pageNo: Int,
+        nx: Int,
+        ny: Int,
+        baseDate: String,
+        baseTime: String,
+    ) {
+        viewModelScope.launch {
+            vilageWeatherUserCase.getUltraStrFcstData(
+                numOfRows, pageNo, nx, ny, baseDate, baseTime
+            ).onStart {
+                _loadingController.emit(true)
+            }.catch {
+                _loadingController.emit(false)
+            }.collectLatest {
+                _loadingController.emit(false)
+            }
+        }
+    }
+
+    fun reqWeatherData(
+        numOfRows: Int,
+        pageNo: Int,
+        regId: String,
+        tmFc: String,
+        nx: Int,
+        ny: Int,
+        baseDate: String,
+        baseTime: String,
+    ) {
+        viewModelScope.launch {
+            _loadingController.emit(true)
+            joinAll(
+                midWeatherFcstJob(
+                    numOfRows, pageNo, regId, tmFc
+                ),
+                ultraStrFcstJob(
+                    numOfRows, pageNo, nx, ny, baseDate, baseTime
+                ),
+                vilageFcstJob(
+                    numOfRows, pageNo, nx, ny, baseDate, baseTime
+                ),
+            )
+            _loadingController.emit(false)
+        }
+    }
+
+    private fun midWeatherFcstJob(
+        numOfRows: Int,
+        pageNo: Int,
+        regId: String,
+        tmFc: String
+    ): Job = viewModelScope.launch {
+        midWeatherUseCase(
+            numOfRows, pageNo, regId, tmFc
+        ).catch {
+        }.collectLatest { midLandFcstData ->
+            midLandFcstData?.let {
+                _midWeatherFcstData.emit(it)
+            }
+        }
+    }
+
+    private fun ultraStrFcstJob(
+        numOfRows: Int,
+        pageNo: Int,
+        nx: Int,
+        ny: Int,
+        baseDate: String,
+        baseTime: String,
+    ): Job = viewModelScope.launch {
+        vilageWeatherUserCase.getUltraStrFcstData(
+            numOfRows, pageNo, nx, ny, baseDate, baseTime
+        ).catch {
+
+        }.collectLatest {
+
+        }
+    }
+
+    private fun vilageFcstJob(
+        numOfRows: Int,
+        pageNo: Int,
+        nx: Int,
+        ny: Int,
+        baseDate: String,
+        baseTime: String,
+    ): Job = viewModelScope.launch {
+        vilageWeatherUserCase.getVilageFcstData(
+            numOfRows, pageNo, nx, ny, baseDate, baseTime
+        ).catch {
+
+        }.collectLatest {
+
+        }
+    }
 
 }
