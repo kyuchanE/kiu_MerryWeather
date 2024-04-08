@@ -35,6 +35,7 @@ object Dependency {
 
     object Coroutines {
         const val COROUTINES = "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2"
+        const val COROUTINES_CORE = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0"
     }
 
     object KTX {
@@ -89,5 +90,10 @@ object Dependency {
 
     object SwiperRefreshLayout {
         const val SWIPER_REFRESH = "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    }
+
+    object Realm {
+        const val REALM_BASE = "io.realm.kotlin:library-base:1.11.0"
+        const val REALM_SYNC = "io.realm.kotlin:library-sync:1.11.0"
     }
 }

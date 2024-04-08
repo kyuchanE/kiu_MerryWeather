@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("io.realm.kotlin")
 }
 
 android {
@@ -27,11 +28,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility=  JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "1.8"
     }
 }
 
@@ -65,6 +66,10 @@ dependencies {
     kapt(Dependency.DaggerHilt.DAGGER_HILT_ANDROIDX_COMPILER)
     // Coroutines
     implementation(Dependency.Coroutines.COROUTINES)
+    implementation(Dependency.Coroutines.COROUTINES_CORE)
+    // Realm
+    implementation(Dependency.Realm.REALM_BASE)
+    implementation(Dependency.Realm.REALM_SYNC)
     // LiveData
     implementation(Dependency.AndroidX.LIFECYCLE_LIVEDATA)
 }

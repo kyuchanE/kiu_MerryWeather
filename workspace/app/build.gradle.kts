@@ -4,6 +4,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+    id("io.realm.kotlin")
 }
 
 android {
@@ -52,13 +53,22 @@ android {
 //        }
 //    }
 
+//    compileOptions {
+//        sourceCompatibility = JavaVersion.VERSION_17
+//        targetCompatibility = JavaVersion.VERSION_17
+//    }
+//    kotlinOptions {
+//        jvmTarget = JavaVersion.VERSION_17.toString()
+//    }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility=  JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "1.8"
     }
+
     buildFeatures {
         dataBinding = true
         viewBinding = true
@@ -109,14 +119,6 @@ dependencies {
     implementation(Dependency.AndroidX.FRAGMENT)
     // LiveData
     implementation(Dependency.AndroidX.LIFECYCLE_LIVEDATA)
-    // room
-//    implementation "androidx.room:room-runtime:2.4.3"
-//    implementation "androidx.room:room-ktx:2.4.3"
-//    implementation "androidx.room:room-rxjava2:2.4.3"
-//    implementation "androidx.room:room-rxjava3:2.4.3"
-//    annotationProcessor "androidx.room:room-compiler:2.4.3"
-//    kapt 'androidx.room:room-compiler:2.4.3'
-
     // swiperefreshlayout
     implementation(Dependency.SwiperRefreshLayout.SWIPER_REFRESH)
     // glide
@@ -130,6 +132,10 @@ dependencies {
     implementation(Dependency.Firebase.FIREBASE_DATABASE)
     // Coroutines
     implementation(Dependency.Coroutines.COROUTINES)
+    implementation(Dependency.Coroutines.COROUTINES_CORE)
+    // Realm
+    implementation(Dependency.Realm.REALM_BASE)
+    implementation(Dependency.Realm.REALM_SYNC)
 }
 // Allow references to generated code
 kapt {
