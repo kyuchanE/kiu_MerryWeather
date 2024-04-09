@@ -76,8 +76,8 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
             1,
             55,
             127,
-            "20240404",
-            "1230"
+            "20240409",
+            "1430"
         )
 
     }

@@ -3,10 +3,12 @@ package kiu.dev.merryweather
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.kyu.domain.model.MidLandFcstData
+import dev.kyu.domain.model.WeatherData
 import dev.kyu.domain.repository.WeatherRepository
 import dev.kyu.domain.usecase.GetMidWeatherUseCase
 import dev.kyu.domain.usecase.GetVilageWeatherUseCase
 import dev.kyu.ui.base.BaseViewModel
+import dev.kyu.ui.utils.L
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -68,6 +70,13 @@ class SplashViewModel @Inject constructor(
                 _loadingController.emit(false)
             }.collectLatest {
                 _loadingController.emit(false)
+
+//                saveWeatherData(
+//                    WeatherData().apply {
+//                        this.dateTime = "202404091435"
+//                    }
+//                )
+
             }
         }
     }
@@ -146,6 +155,18 @@ class SplashViewModel @Inject constructor(
 
         }.collectLatest {
 
+        }
+    }
+
+    private fun saveWeatherData(
+        weatherData: WeatherData
+    ) {
+        viewModelScope.launch {
+            vilageWeatherUserCase.saveWeatherData(weatherData)
+            val list = vilageWeatherUserCase.getAllWeatherData()
+            list.forEach {
+                L.d("saveWeatherData getWeatherData : ${it.dateTime}")
+            }
         }
     }
 

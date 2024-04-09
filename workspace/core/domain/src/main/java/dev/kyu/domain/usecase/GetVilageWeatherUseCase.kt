@@ -1,12 +1,15 @@
 package dev.kyu.domain.usecase
 
 import dev.kyu.domain.model.VilageFcstData
+import dev.kyu.domain.model.WeatherData
+import dev.kyu.domain.repository.DatabaseRepository
 import dev.kyu.domain.repository.WeatherRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetVilageWeatherUseCase @Inject constructor(
-    private val weatherRepository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val databaseRepository: DatabaseRepository,
 ) {
 
     /**
@@ -46,4 +49,12 @@ class GetVilageWeatherUseCase @Inject constructor(
         baseDate,
         baseTime
     )
+
+    fun saveWeatherData(
+        weatherData: WeatherData
+    ) {
+        databaseRepository.saveWeatherData(weatherData)
+    }
+
+    fun getAllWeatherData(): List<WeatherData> = databaseRepository.getAllWeatherData()
 }

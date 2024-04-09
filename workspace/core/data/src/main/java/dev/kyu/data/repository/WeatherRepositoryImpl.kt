@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(
-    private val weatherApi: WeatherApi
+    private val weatherApi: WeatherApi,
 ): WeatherRepository {
 
     override fun getMidLandFcstData(
@@ -93,5 +93,6 @@ class WeatherRepositoryImpl @Inject constructor(
             }
         }
     }
+
 
 }
