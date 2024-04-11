@@ -6,4 +6,9 @@ import org.mongodb.kbson.ObjectId
 
 class WeatherData(): RealmObject {
     var dateTime: String = ""
+    // TODO chan Change Name
+    var t1h: String = ""
+    var sky: String = ""
+    var rn1: String = ""
+    var pty: String = ""
 }

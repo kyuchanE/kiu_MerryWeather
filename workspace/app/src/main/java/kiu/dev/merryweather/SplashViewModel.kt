@@ -3,6 +3,7 @@ package kiu.dev.merryweather
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.kyu.domain.model.MidLandFcstData
+import dev.kyu.domain.model.VilageFcstData
 import dev.kyu.domain.model.WeatherData
 import dev.kyu.domain.repository.WeatherRepository
 import dev.kyu.domain.usecase.GetMidWeatherUseCase
@@ -14,6 +15,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -71,11 +74,43 @@ class SplashViewModel @Inject constructor(
             }.collectLatest {
                 _loadingController.emit(false)
 
-//                saveWeatherData(
-//                    WeatherData().apply {
-//                        this.dateTime = "202404091435"
-//                    }
-//                )
+                it?.let { data ->
+                    data.vilageFcstItems?.let { itemList ->
+                        val resultDateTimeStrList = mutableListOf<String>()
+                        val resultWeatherDataList = mutableListOf<WeatherData>()
+                        itemList.forEach { item ->
+                            val dateTimeStr = item.fcstDate + item.fcstTime
+                            if (!resultDateTimeStrList.contains(dateTimeStr)) {
+                                resultDateTimeStrList.add(dateTimeStr)
+                                resultWeatherDataList.add(WeatherData().apply {
+                                    dateTime = dateTimeStr
+                                })
+                            }
+                            val position: Int = resultDateTimeStrList.indexOf(dateTimeStr)
+
+                            when (item.category) {
+                                VilageFcstData.CATEGORY_TEMP_HOUR -> {
+                                    resultWeatherDataList[position].t1h = item.fcstValue
+                                }
+                                VilageFcstData.CATEGORY_SKY -> {
+                                    resultWeatherDataList[position].sky = item.fcstValue
+                                }
+                                VilageFcstData.CATEGORY_PRECIPITATION_TYPE -> {
+                                    resultWeatherDataList[position].pty = item.fcstValue
+                                }
+                                VilageFcstData.CATEGORY_RAIN_HOUR -> {
+                                    resultWeatherDataList[position].rn1 = item.fcstValue
+                                }
+                            }
+                        }
+
+//                        saveWeatherData(
+//                            WeatherData().apply {
+//                                this.dateTime = "202404091435"
+//                            }
+//                        )
+                    }
+                }
 
             }
         }
