@@ -4,6 +4,9 @@ import dev.kyu.domain.model.VilageFcstData
 import dev.kyu.domain.model.WeatherData
 import dev.kyu.domain.repository.DatabaseRepository
 import dev.kyu.domain.repository.WeatherRepository
+import io.realm.kotlin.Realm
+import io.realm.kotlin.query.RealmQuery
+import io.realm.kotlin.query.RealmResults
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -57,4 +60,6 @@ class GetVilageWeatherUseCase @Inject constructor(
     }
 
     fun getAllWeatherData(): List<WeatherData> = databaseRepository.getAllWeatherData()
+
+    fun getRealm(): Realm = databaseRepository.getRealm()
 }

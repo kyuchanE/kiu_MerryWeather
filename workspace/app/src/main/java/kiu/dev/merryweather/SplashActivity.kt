@@ -76,8 +76,13 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
             1,
             55,
             127,
-            "20240411",
-            "1559"
+        )
+
+        viewModel.getVilageFcst(
+            100,
+            1,
+            55,
+            127,
         )
 
     }
@@ -90,7 +95,6 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
 
         lifecycleScope.launch {
             viewModel.loadingController.collect {
-                L.d("Loading : $it")
                 if (!it) {
                     moveMain()
                 }

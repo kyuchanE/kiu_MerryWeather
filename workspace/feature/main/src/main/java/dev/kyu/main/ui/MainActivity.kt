@@ -1,36 +1,31 @@
 package dev.kyu.main.ui
 
-import android.os.Bundle
-import androidx.fragment.app.Fragment
+import androidx.activity.viewModels
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.work.*
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.WithFragmentBindings
 import dev.kyu.main.R
 import dev.kyu.main.databinding.ActivityMainBinding
-import dev.kyu.setting.ui.SettingFragment
 import dev.kyu.ui.base.BaseActivity
 import dev.kyu.ui.utils.L
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
+@WithFragmentBindings
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override val layoutId: Int = R.layout.activity_main
 
-    private lateinit var pageAdapter: MainPageAdapter
-
     private val workManager = WorkManager.getInstance(this)
     lateinit var widgetUpdateWorkInfo: LiveData<List<WorkInfo>>
 
-    /** init Fragment **/
-    private val fragmentList = mutableListOf(
-//        WeatherFragment() as Fragment,
-        MainFragment() as Fragment,
-        SettingFragment() as Fragment
-    )
+    private val viewModel by viewModels<MainViewModel> ()
 
     override fun init() {
         // TODO chan MainActivity 로직 정리 필요 -> WeatherFragment
@@ -39,23 +34,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         //        widgetUpdateWorkInfo = workManager.getWorkInfosByTagLiveData(C.WorkTag.WIDGET_UPDATE)
         observeViewModel()
 
-        binding.tv1.setOnClickListener {
-            binding.vpMain.setCurrentItem(0, false)
-        }
-
-        binding.tv2.setOnClickListener {
-            binding.vpMain.setCurrentItem(1, false)
-        }
-
-        binding.tv3.setOnClickListener {
-            binding.vpMain.setCurrentItem(2, false)
-        }
-
-        pageAdapter = MainPageAdapter(this, fragmentList)
-        with(binding.vpMain) {
-            adapter = pageAdapter
-            isUserInputEnabled = false      // 스와이프 막기
-        }
+        viewModel.getNowWeatherData()
     }
 
     override fun onResume() {
@@ -87,6 +66,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * init Observe
      */
     private fun observeViewModel() {
+
+        lifecycleScope.launch {
+            viewModel.loadingController.collect{
+
+            }
+        }
+
 
     }
 
