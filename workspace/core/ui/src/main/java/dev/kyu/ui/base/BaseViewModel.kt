@@ -1,8 +1,7 @@
 package dev.kyu.ui.base
 
 import androidx.lifecycle.ViewModel
-import dev.kyu.ui.utils.L
-import java.text.SimpleDateFormat
+import dev.kyu.ui.utils.dateToString
 import java.util.Calendar
 import java.util.Date
 
@@ -59,8 +58,5 @@ abstract class BaseViewModel: ViewModel() {
         return calendar.time.dateToString("HH") + "00"
     }
 
-    fun Date.dateToString(format: String): String {
-        val simpleDateFormat = SimpleDateFormat(format)
-        return simpleDateFormat.format(this)
-    }
+
 }

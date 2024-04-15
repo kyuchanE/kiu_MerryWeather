@@ -10,10 +10,14 @@ import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.WithFragmentBindings
+import dev.kyu.domain.model.WeatherData
 import dev.kyu.main.R
 import dev.kyu.main.databinding.ActivityMainBinding
 import dev.kyu.ui.base.BaseActivity
 import dev.kyu.ui.utils.L
+import dev.kyu.ui.utils.getNextHour
+import dev.kyu.ui.utils.getSkyDrawable
+import dev.kyu.ui.utils.getToday
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -87,8 +91,41 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         lifecycleScope.launch {
             viewModel.allWeatherData.collect {
                 weatherTimeLineAdapter.changeItemList(it.toMutableList())
+                refreshNowWeather(it)
             }
         }
+
+    }
+
+    /**
+     * 메인 상단 현시간 날씨 UI
+     */
+    private fun refreshNowWeather(weatherList: List<WeatherData>) {
+        var nowWeather: WeatherData? = null
+        weatherList.forEach {
+            if (it.dateTime == "yyyyMMddHH".getToday() + "00") {
+                nowWeather = it
+                return@forEach
+            }
+        }
+
+        val nowWeatherData: WeatherData = if (nowWeather == null) {
+            weatherList.forEach {
+                if (it.dateTime == getNextHour()) {
+                    it
+                    return@forEach
+                }
+            }
+            WeatherData()
+        } else {
+          nowWeather!!
+        }
+
+        // TODO chan Now Weather UI
+        binding.tvNow.text = "${nowWeatherData.dateTime} 기온 : ${nowWeatherData.t1h} , " +
+                "최소 기온 : ${nowWeatherData.tmn} , 최대 기온 : ${nowWeatherData.tmx}"
+
+        binding.ivSky.setImageDrawable(this.getSkyDrawable(nowWeatherData.pty, nowWeatherData.sky))
 
     }
 

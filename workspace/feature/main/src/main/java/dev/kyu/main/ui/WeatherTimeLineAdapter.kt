@@ -10,6 +10,7 @@ import dev.kyu.domain.model.WeatherData
 import dev.kyu.main.R
 import dev.kyu.main.databinding.ItemWeatherTimeLineBinding
 import dev.kyu.ui.utils.L
+import dev.kyu.ui.utils.getSkyDrawable
 
 class WeatherTimeLineAdapter(
     private val context: Context,
@@ -34,26 +35,7 @@ class WeatherTimeLineAdapter(
                     b.tvTime.text = this.dateTime
                     b.tvTemperature.text = this.t1h
                     b.tvPop.text = this.pop
-                    val skyDrawable =
-                        if (this.pty == "0") {
-                            when(this.sky) {
-                                "1" -> context.getDrawable(R.drawable.icon_sunny)
-                                "3" -> context.getDrawable(R.drawable.icon_cloudy_a_lot)
-                                "4" -> context.getDrawable(R.drawable.icon_cloudy)
-                                else -> context.getDrawable(R.drawable.icon_sunny)
-                            }
-                        } else {
-                            when(this.pty) {
-                                "1" -> context.getDrawable(R.drawable.icon_rainny)
-                                "2" -> context.getDrawable(R.drawable.icon_rainny)
-                                "3" -> context.getDrawable(R.drawable.icon_sunny)           // TODO chan 눈
-                                "4" -> context.getDrawable(R.drawable.icon_rainny)
-                                "5" -> context.getDrawable(R.drawable.icon_rainny)
-                                "6" -> context.getDrawable(R.drawable.icon_rainny)           // TODO chan 눈
-                                "7" -> context.getDrawable(R.drawable.icon_rainny)           // TODO chan 눈
-                                else -> context.getDrawable(R.drawable.icon_sunny)
-                            }
-                        }
+                    val skyDrawable = context.getSkyDrawable(this.pty, this.sky)
                     b.ivWeather.setImageDrawable(skyDrawable)
                 }
             }

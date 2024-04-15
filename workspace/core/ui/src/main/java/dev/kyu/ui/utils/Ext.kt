@@ -2,6 +2,7 @@ package dev.kyu.ui.utils
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +12,10 @@ import androidx.core.view.WindowCompat
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
+import dev.kyu.ui.R
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 
 ////////////////////////////// DataBinding //////////////////////////////
 
@@ -90,10 +95,47 @@ fun Context.statusBarHeight(): Int {
     return if (resourceId > 0) resources.getDimensionPixelSize(resourceId)
     else 0
 }
+
 // 하단 네비게이션 높이 값
 fun Context.navigationHeight(): Int {
     val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
 
     return if (resourceId > 0) resources.getDimensionPixelSize(resourceId)
     else 0
+}
+
+
+fun Date.dateToString(format: String): String {
+    val simpleDateFormat = SimpleDateFormat(format)
+    return simpleDateFormat.format(this)
+}
+
+fun String.getToday(): String = Date(System.currentTimeMillis()).dateToString(this)
+
+fun getNextHour(): String {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.HOUR, 1)
+    return calendar.time.dateToString("yyyyMMddHH") + "00"
+}
+
+fun Context.getSkyDrawable(pty: String, sky: String): Drawable? {
+    return if (pty == "0") {
+        when(sky) {
+            "1" -> this.getDrawable(R.drawable.icon_sunny)
+            "3" -> this.getDrawable(R.drawable.icon_cloudy_a_lot)
+            "4" -> this.getDrawable(R.drawable.icon_cloudy)
+            else -> this.getDrawable(R.drawable.icon_sunny)
+        }
+    } else {
+        when(pty) {
+            "1" -> this.getDrawable(R.drawable.icon_rainny)
+            "2" -> this.getDrawable(R.drawable.icon_rainny)
+            "3" -> this.getDrawable(R.drawable.icon_sunny)           // TODO chan 눈
+            "4" -> this.getDrawable(R.drawable.icon_rainny)
+            "5" -> this.getDrawable(R.drawable.icon_rainny)
+            "6" -> this.getDrawable(R.drawable.icon_rainny)           // TODO chan 눈
+            "7" -> this.getDrawable(R.drawable.icon_rainny)           // TODO chan 눈
+            else -> this.getDrawable(R.drawable.icon_sunny)
+        }
+    }
 }
