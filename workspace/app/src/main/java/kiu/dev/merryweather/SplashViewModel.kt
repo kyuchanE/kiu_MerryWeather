@@ -127,44 +127,35 @@ class SplashViewModel @Inject constructor(
         ny: Int
     ) {
         viewModelScope.launch {
-            vilageWeatherUseCase.getVilageFcstData(
+            vilageFcstJob(
                 numOfRows,
                 pageNo,
                 nx,
-                ny,
-                getBaseDate(),
-                getVilageBaseTime(),
-            ).catch {
-
-            }.collectLatest {
-
-            }
+                ny
+            ).join()
         }
     }
 
     fun reqWeatherData(
-        numOfRows: Int,
         pageNo: Int,
         regId: String,
         tmFc: String,
         nx: Int,
         ny: Int,
-        baseDate: String,
-        baseTime: String,
     ) {
         viewModelScope.launch {
             _loadingController.emit(true)
 
             midWeatherFcstJob(
-                numOfRows, pageNo, regId, tmFc
+                100, pageNo, regId, tmFc
             ).join()
 
             vilageFcstJob(
-                numOfRows, pageNo, nx, ny
+                700, pageNo, nx, ny
             ).join()
 
             ultraStrFcstJob(
-                numOfRows, pageNo, nx, ny
+                100, pageNo, nx, ny
             ).join()
 
             _loadingController.emit(false)

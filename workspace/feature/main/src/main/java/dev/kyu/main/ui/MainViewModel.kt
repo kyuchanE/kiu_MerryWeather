@@ -28,6 +28,9 @@ class MainViewModel @Inject constructor(
     private val _ultraWeatherResponse = MutableSharedFlow<WeatherData>()
     var ultraWeatherResponse = _ultraWeatherResponse.asSharedFlow()
 
+    private val _allWeatherData = MutableSharedFlow<List<WeatherData>>()
+    var allWeatherData = _allWeatherData.asSharedFlow()
+
     fun getUltraWeatherFcst(
         numOfRows: Int,
         pageNo: Int,
@@ -125,6 +128,12 @@ class MainViewModel @Inject constructor(
             }
         }
 
+    }
+
+    fun getAllWeatherData() {
+        viewModelScope.launch {
+            _allWeatherData.emit(vilageWeatherUseCase.getAllWeatherData())
+        }
     }
 
 

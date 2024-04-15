@@ -14,16 +14,18 @@ import dev.kyu.main.R
 import dev.kyu.main.databinding.ActivityMainBinding
 import dev.kyu.ui.base.BaseActivity
 import dev.kyu.ui.utils.L
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-@WithFragmentBindings
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override val layoutId: Int = R.layout.activity_main
 
     private val workManager = WorkManager.getInstance(this)
     lateinit var widgetUpdateWorkInfo: LiveData<List<WorkInfo>>
+
+    private var weatherTimeLineAdapter = WeatherTimeLineAdapter(this,mutableListOf())
 
     private val viewModel by viewModels<MainViewModel> ()
 
@@ -34,7 +36,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         //        widgetUpdateWorkInfo = workManager.getWorkInfosByTagLiveData(C.WorkTag.WIDGET_UPDATE)
         observeViewModel()
 
-        viewModel.getNowWeatherData()
+        binding.rvToday.adapter = weatherTimeLineAdapter
+
+//        viewModel.getNowWeatherData()
+        viewModel.getAllWeatherData()
     }
 
     override fun onResume() {
@@ -73,6 +78,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
+        lifecycleScope.launch {
+            viewModel.ultraWeatherResponse.collect {
+
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.allWeatherData.collect {
+                weatherTimeLineAdapter.changeItemList(it.toMutableList())
+            }
+        }
 
     }
 

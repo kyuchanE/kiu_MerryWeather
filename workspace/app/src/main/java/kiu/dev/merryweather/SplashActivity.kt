@@ -53,34 +53,11 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
      * 날씨 데이터 요청
      */
     private fun reqWeatherData() {
-//        viewModel.getMidWeatherFcst(
-//            10,
-//            1,
-//            "11B10101",
-//            "202404041300"
-//        )
 
-//        viewModel.reqWeatherData(
-//            100,
-//            1,
-//            "11B10101",
-//            "202404040600",
-//            55,
-//            127,
-//            "20240404",
-//            "1230"
-//        )
-
-        viewModel.getUltraWeatherFcst(
-            100,
+        viewModel.reqWeatherData(
             1,
-            55,
-            127,
-        )
-
-        viewModel.getVilageFcst(
-            100,
-            1,
+            "",
+            "",
             55,
             127,
         )

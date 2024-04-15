@@ -55,8 +55,8 @@ abstract class BaseViewModel: ViewModel() {
 
     fun getVilageBaseTime(): String {
         val calendar = Calendar.getInstance()
-        calendar.add(Calendar.HOUR, 1)
-        return calendar.time.dateToString("yyyyMMddHH") + "00"
+        calendar.add(Calendar.HOUR, -1)
+        return calendar.time.dateToString("HH") + "00"
     }
 
     fun Date.dateToString(format: String): String {

@@ -1,0 +1,85 @@
+package dev.kyu.main.ui
+
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.RecyclerView
+import dev.kyu.domain.model.WeatherData
+import dev.kyu.main.R
+import dev.kyu.main.databinding.ItemWeatherTimeLineBinding
+import dev.kyu.ui.utils.L
+
+class WeatherTimeLineAdapter(
+    private val context: Context,
+    private val weatherItems: MutableList<WeatherData>
+): RecyclerView.Adapter<WeatherTimeLineAdapter.WeatherTimeLineViewHolder>() {
+
+    private val itemList: MutableList<WeatherData> = mutableListOf()
+
+    init {
+        itemList.addAll(weatherItems)
+        setHasStableIds(true)
+    }
+
+    inner class WeatherTimeLineViewHolder(
+        private val itemView: View
+    ): RecyclerView.ViewHolder(itemView) {
+        private val binding: ItemWeatherTimeLineBinding? = DataBindingUtil.bind(itemView)
+
+        fun bindView(position: Int) {
+            binding?.let { b ->
+                with(itemList[position]) {
+                    b.tvTime.text = this.dateTime
+                    b.tvTemperature.text = this.t1h
+                    b.tvPop.text = this.pop
+                    val skyDrawable =
+                        if (this.pty == "0") {
+                            when(this.sky) {
+                                "1" -> context.getDrawable(R.drawable.icon_sunny)
+                                "3" -> context.getDrawable(R.drawable.icon_cloudy_a_lot)
+                                "4" -> context.getDrawable(R.drawable.icon_cloudy)
+                                else -> context.getDrawable(R.drawable.icon_sunny)
+                            }
+                        } else {
+                            when(this.pty) {
+                                "1" -> context.getDrawable(R.drawable.icon_rainny)
+                                "2" -> context.getDrawable(R.drawable.icon_rainny)
+                                "3" -> context.getDrawable(R.drawable.icon_sunny)           // TODO chan 눈
+                                "4" -> context.getDrawable(R.drawable.icon_rainny)
+                                "5" -> context.getDrawable(R.drawable.icon_rainny)
+                                "6" -> context.getDrawable(R.drawable.icon_rainny)           // TODO chan 눈
+                                "7" -> context.getDrawable(R.drawable.icon_rainny)           // TODO chan 눈
+                                else -> context.getDrawable(R.drawable.icon_sunny)
+                            }
+                        }
+                    b.ivWeather.setImageDrawable(skyDrawable)
+                }
+            }
+        }
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherTimeLineViewHolder {
+        val view: View = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_weather_time_line, parent, false)
+        return WeatherTimeLineViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: WeatherTimeLineViewHolder, position: Int) {
+        holder.bindView(position)
+    }
+
+    override fun getItemCount(): Int = itemList.size
+
+    fun changeItemList(weatherItems: MutableList<WeatherData>) {
+        L.d("changeItemList : $weatherItems")
+        itemList.clear()
+        itemList.addAll(weatherItems)
+        notifyDataSetChanged()
+    }
+}

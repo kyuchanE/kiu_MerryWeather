@@ -1,13 +1,12 @@
-package dev.kyu.weather.ui
+package dev.kyu.main.ui
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
-import dev.kyu.weather.R
-import dev.kyu.weather.databinding.ItemWeatherWeekLineBinding
-import dev.kyu.weather.model.WeatherWeekLineData
+import dev.kyu.main.R
+import dev.kyu.main.databinding.ItemWeatherWeekLineBinding
 
 class WeatherWeekLineAdapter(
     private val weatherItems: MutableList<WeatherWeekLineData>

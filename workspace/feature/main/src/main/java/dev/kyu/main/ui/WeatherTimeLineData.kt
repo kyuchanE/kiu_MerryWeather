@@ -1,4 +1,4 @@
-package dev.kyu.weather.model
+package dev.kyu.main.ui
 
 import android.graphics.drawable.Drawable
 
