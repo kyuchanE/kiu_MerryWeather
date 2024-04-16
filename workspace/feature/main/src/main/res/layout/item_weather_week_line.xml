@@ -38,7 +38,8 @@
             android:id="@+id/iv_pm_sky"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/icon_sunny"/>
+            android:src="@drawable/icon_sunny"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/tv_tmx"

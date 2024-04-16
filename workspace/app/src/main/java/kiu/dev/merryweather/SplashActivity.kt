@@ -56,8 +56,6 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
 
         viewModel.reqWeatherData(
             1,
-            "",
-            "",
             55,
             127,
         )

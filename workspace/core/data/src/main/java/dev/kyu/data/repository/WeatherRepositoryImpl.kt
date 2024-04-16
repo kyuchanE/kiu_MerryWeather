@@ -1,9 +1,11 @@
 package dev.kyu.data.repository
 
 import android.util.Log
+import com.google.gson.JsonObject
 import dev.kyu.data.BuildConfig
 import dev.kyu.data.api.WeatherApi
 import dev.kyu.domain.model.MidLandFcstData
+import dev.kyu.domain.model.MidTaData
 import dev.kyu.domain.model.VilageFcstData
 import dev.kyu.domain.repository.WeatherRepository
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +16,7 @@ class WeatherRepositoryImpl @Inject constructor(
     private val weatherApi: WeatherApi,
 ): WeatherRepository {
 
+    // TODO chan 공통 에러 처리 필요
     override fun getMidLandFcstData(
         numOfRows: Int,
         pageNo: Int,
@@ -34,6 +37,30 @@ class WeatherRepositoryImpl @Inject constructor(
             in 200 .. 299 -> emit(midLandFcstResponse.body()?.toDomain())
             else -> {
                 Log.d("@@@@@@", "error ${midLandFcstResponse.errorBody().toString()}")
+            }
+        }
+    }
+
+    override fun getMidTaData(
+        numOfRows: Int,
+        pageNo: Int,
+        regId: String,
+        tmFc: String
+    ): Flow<MidTaData?> = flow {
+
+        val midTaResponse = weatherApi.reqMidTa(
+            serviceKey = BuildConfig.WEATHER_API_KEY,
+            numOfRows = numOfRows,
+            pageNo = pageNo,
+            regId = regId,
+            tmFc = tmFc,
+            dataType = "JSON"
+        )
+
+        when(midTaResponse.code()) {
+            in 200..299 -> emit(midTaResponse.body()?.toDomain())
+            else -> {
+                Log.d("@@@@@@", "error ${midTaResponse.errorBody().toString()}")
             }
         }
     }

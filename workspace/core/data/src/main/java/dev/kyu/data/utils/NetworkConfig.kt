@@ -8,6 +8,7 @@ object NetworkConfig {
         object Mid {
             const val midBaseUrl = "1360000/MidFcstInfoService/"
             const val midLandFcst = "getMidLandFcst"
+            const val midTa = "getMidTa"
         }
 
         object Vilage {

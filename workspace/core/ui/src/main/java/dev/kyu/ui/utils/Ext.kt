@@ -110,6 +110,32 @@ fun Date.dateToString(format: String): String {
     return simpleDateFormat.format(this)
 }
 
+fun Date.dateToInt(format: String): Int? {
+    return try {
+        val simpleDateFormat = SimpleDateFormat(format)
+        simpleDateFormat.format(this).toInt()
+    } catch (e: Exception) {
+        null
+    }
+}
+
+fun getDayOfWeek(day: Int = 0): String {
+    val calendar = Calendar.getInstance()
+    if (day > 0) {
+        calendar.add(Calendar.DAY_OF_MONTH, day)
+    }
+    return when(calendar.get(Calendar.DAY_OF_WEEK)) {
+        Calendar.SUNDAY -> "일요일"
+        Calendar.MONDAY -> "월요일"
+        Calendar.TUESDAY -> "화요일"
+        Calendar.WEDNESDAY -> "수요일"
+        Calendar.THURSDAY -> "목요일"
+        Calendar.FRIDAY -> "금요일"
+        Calendar.SATURDAY -> "토요일"
+        else ->""
+    }
+}
+
 fun String.getToday(): String = Date(System.currentTimeMillis()).dateToString(this)
 
 fun getNextHour(): String {

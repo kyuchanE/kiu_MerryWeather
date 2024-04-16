@@ -30,6 +30,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     lateinit var widgetUpdateWorkInfo: LiveData<List<WorkInfo>>
 
     private var weatherTimeLineAdapter = WeatherTimeLineAdapter(this,mutableListOf())
+    private var weatherWeekLineAdapter = WeatherWeekLineAdapter(this, mutableListOf())
 
     private val viewModel by viewModels<MainViewModel> ()
 
@@ -41,6 +42,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         observeViewModel()
 
         binding.rvToday.adapter = weatherTimeLineAdapter
+        binding.rvWeek.adapter = weatherWeekLineAdapter
 
 //        viewModel.getNowWeatherData()
         viewModel.getAllWeatherData()
@@ -92,6 +94,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.allWeatherData.collect {
                 weatherTimeLineAdapter.changeItemList(it.toMutableList())
                 refreshNowWeather(it)
+                refreshWeekWeather(it)
             }
         }
 
@@ -126,6 +129,51 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 "최소 기온 : ${nowWeatherData.tmn} , 최대 기온 : ${nowWeatherData.tmx}"
 
         binding.ivSky.setImageDrawable(this.getSkyDrawable(nowWeatherData.pty, nowWeatherData.sky))
+
+    }
+
+    /**
+     * 주간 날씨 UI
+     */
+    private fun refreshWeekWeather(weatherList: List<WeatherData>) {
+        val weekWeatherDataList = mutableListOf<WeatherWeekLineData>()
+        val dateList = mutableListOf<String>()
+
+        weatherList.forEach {
+            val dateWeather = it.dateTime.substring(0, 8)
+            if ("yyyyMMdd".getToday().toInt() <= dateWeather.toInt()) {
+                if (dateList.contains(it.dateTime.substring(0, 8))) {
+                    val index = dateList.indexOf(it.dateTime.substring(0, 8))
+                    weekWeatherDataList[index] = WeatherWeekLineData(
+                        weekWeatherDataList[index].date,
+                        if (weekWeatherDataList[index].sky < it.sky) it.sky else weekWeatherDataList[index].sky,
+                        if (weekWeatherDataList[index].tmn > it.tmn) it.tmn else weekWeatherDataList[index].tmn,
+                        if (weekWeatherDataList[index].tmx < it.tmx) it.tmx else weekWeatherDataList[index].tmx,
+                        if (weekWeatherDataList[index].pty < it.pty) it.pty else weekWeatherDataList[index].pty,
+                        if (weekWeatherDataList[index].pop < it.pop) it.pop else weekWeatherDataList[index].pop,
+                    )
+
+                } else {
+                    dateList.add(dateWeather)
+                    weekWeatherDataList.add(
+                        WeatherWeekLineData(
+                            it.dateTime.substring(0, 8),
+                            it.sky,
+                            it.tmn,
+                            it.tmx,
+                            it.pty,
+                            it.pop
+                        )
+                    )
+                }
+            }
+        }
+
+        weekWeatherDataList.forEach {
+            L.d("WeekWeatherData : ${it.date}")
+        }
+
+        weatherWeekLineAdapter.changeItemList(weekWeatherDataList)
 
     }
 

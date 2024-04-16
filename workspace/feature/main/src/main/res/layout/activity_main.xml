@@ -57,6 +57,15 @@
                     android:orientation="horizontal"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_week"
+                    android:layout_marginTop="25dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    android:overScrollMode="never"/>
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>
